@@ -1,3 +1,11 @@
 spring:
   application:
     name: finanzas
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finanzas
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
