@@ -1,11 +1,13 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.RelojParado;
 import com.markmadlang.finanzas.categoria.CategoriaRepository;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Import(RelojParado.class) // para la app, "hoy" es el 10/11/2026
 class PagoRecurrenteControllerTest {
 
     private static final String URL = "/api/pagos-recurrentes";
@@ -82,6 +85,48 @@ class PagoRecurrenteControllerTest {
     }
 
     @Test
+    void crearTrimestralDevuelveSuCosteAlMesYSuProximaFecha() throws Exception {
+        String json = """
+                {"descripcion": "Gimnasio", "tipo": "GASTO", "importe": 60,
+                 "frecuencia": "TRIMESTRAL", "fechaInicio": "2026-01-15"}
+                """;
+
+        // Trimestral desde el 15/01: 15/01, 15/04, 15/07, 15/10, 15/01/2027... → hoy (10/11) el próximo es el 15/01/2027
+        mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.frecuencia").value("TRIMESTRAL"))
+                .andExpect(jsonPath("$.importeMensual").value(20.00))
+                .andExpect(jsonPath("$.proximaFecha").value("2027-01-15"));
+    }
+
+    @Test
+    void cadaFrecuenciaTieneSuCosteAlMes() throws Exception {
+        guardar("Bote", "30.00", Frecuencia.SEMANAL, true);        // 30 × 52 / 12 = 130,00
+        guardar("Netflix", "12.99", Frecuencia.MENSUAL, true);     // 12,99
+        guardar("Luz", "90.00", Frecuencia.BIMESTRAL, true);       // 90 × 6 / 12 = 45,00
+        guardar("Matrícula", "100.00", Frecuencia.SEMESTRAL, true); // 100 × 2 / 12 = 16,666... → 16,67
+        guardar("Seguro", "420.00", Frecuencia.ANUAL, true);       // 420 / 12 = 35,00
+
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.descripcion == 'Bote')].importeMensual").value(130.00))
+                .andExpect(jsonPath("$[?(@.descripcion == 'Netflix')].importeMensual").value(12.99))
+                .andExpect(jsonPath("$[?(@.descripcion == 'Luz')].importeMensual").value(45.00))
+                .andExpect(jsonPath("$[?(@.descripcion == 'Matrícula')].importeMensual").value(16.67))
+                .andExpect(jsonPath("$[?(@.descripcion == 'Seguro')].importeMensual").value(35.00));
+    }
+
+    @Test
+    void unPagoDesactivadoNoTieneProximaFecha() throws Exception {
+        PagoRecurrente p = guardar("Gimnasio", "30.00", Frecuencia.MENSUAL, false);
+
+        mockMvc.perform(get(URL + "/" + p.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(false))
+                .andExpect(jsonPath("$.proximaFecha").doesNotExist());
+    }
+
+    @Test
     void crearConDatosVaciosDevuelve400ConTodosLosErrores() throws Exception {
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
@@ -101,7 +146,7 @@ class PagoRecurrenteControllerTest {
 
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("SEMANAL, MENSUAL o ANUAL")));
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("TRIMESTRAL, SEMESTRAL o ANUAL")));
     }
 
     @Test

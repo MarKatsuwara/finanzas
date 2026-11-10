@@ -2,11 +2,29 @@ package com.markmadlang.finanzas.pagorecurrente;
 
 import java.time.LocalDate;
 
-/** Cada cuánto se repite un pago. */
+/**
+ * Cada cuánto se repite un pago.
+ * Cada frecuencia sabe dos cosas: cuántas veces se paga al año
+ * y cómo calcular la fecha de la repetición número N.
+ */
 public enum Frecuencia {
-    SEMANAL,
-    MENSUAL,
-    ANUAL;
+    SEMANAL(52),
+    MENSUAL(12),
+    BIMESTRAL(6),   // cada 2 meses
+    TRIMESTRAL(4),  // cada 3 meses
+    SEMESTRAL(2),   // cada 6 meses
+    ANUAL(1);
+
+    private final int vecesAlAnio;
+
+    Frecuencia(int vecesAlAnio) {
+        this.vecesAlAnio = vecesAlAnio;
+    }
+
+    /** Cuántas veces se paga en un año (semanal = 52, mensual = 12, anual = 1...). */
+    public int vecesAlAnio() {
+        return vecesAlAnio;
+    }
 
     /**
      * Devuelve la fecha de la repetición número "veces", contando desde la fecha de inicio.
@@ -20,6 +38,9 @@ public enum Frecuencia {
         return switch (this) {
             case SEMANAL -> inicio.plusWeeks(veces);
             case MENSUAL -> inicio.plusMonths(veces);
+            case BIMESTRAL -> inicio.plusMonths(2 * veces);
+            case TRIMESTRAL -> inicio.plusMonths(3 * veces);
+            case SEMESTRAL -> inicio.plusMonths(6 * veces);
             case ANUAL -> inicio.plusYears(veces);
         };
     }

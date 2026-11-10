@@ -5,6 +5,7 @@ import com.markmadlang.finanzas.error.CampoNoValidoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -19,20 +20,22 @@ public class PagoRecurrenteService {
 
     private final PagoRecurrenteRepository repository;
     private final CategoriaService categoriaService;
+    private final Clock reloj;
 
-    public PagoRecurrenteService(PagoRecurrenteRepository repository, CategoriaService categoriaService) {
+    public PagoRecurrenteService(PagoRecurrenteRepository repository, CategoriaService categoriaService, Clock reloj) {
         this.repository = repository;
         this.categoriaService = categoriaService;
+        this.reloj = reloj;
     }
 
     public List<PagoRecurrenteResponse> listar() {
         return repository.findAllByOrderByDescripcionAscIdAsc().stream()
-                .map(PagoRecurrenteResponse::desde)
+                .map(this::respuesta)
                 .toList();
     }
 
     public PagoRecurrenteResponse obtener(Long id) {
-        return PagoRecurrenteResponse.desde(buscar(id));
+        return respuesta(buscar(id));
     }
 
     @Transactional
@@ -41,7 +44,7 @@ public class PagoRecurrenteService {
         PagoRecurrente nuevo = new PagoRecurrente(datos.descripcion().trim(), datos.tipo(), datos.importe(),
                 datos.frecuencia(), datos.fechaInicio(), activo,
                 categoriaService.buscarParaAsignar(datos.categoriaId()));
-        return PagoRecurrenteResponse.desde(repository.save(nuevo));
+        return respuesta(repository.save(nuevo));
     }
 
     @Transactional
@@ -51,7 +54,7 @@ public class PagoRecurrenteService {
         existente.actualizar(datos.descripcion().trim(), datos.tipo(), datos.importe(),
                 datos.frecuencia(), datos.fechaInicio(), activo,
                 categoriaService.buscarParaAsignar(datos.categoriaId()));
-        return PagoRecurrenteResponse.desde(existente);
+        return respuesta(existente);
     }
 
     @Transactional
@@ -77,6 +80,11 @@ public class PagoRecurrenteService {
                 .sorted(Comparator.comparing(ProximoPagoResponse::fecha)
                         .thenComparing(ProximoPagoResponse::descripcion))
                 .toList();
+    }
+
+    /** Convierte un pago en respuesta, calculando su próxima fecha a partir de hoy. */
+    private PagoRecurrenteResponse respuesta(PagoRecurrente pago) {
+        return PagoRecurrenteResponse.desde(pago, LocalDate.now(reloj));
     }
 
     private PagoRecurrente buscar(Long id) {

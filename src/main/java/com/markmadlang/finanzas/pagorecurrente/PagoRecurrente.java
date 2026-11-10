@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class PagoRecurrente {
     private BigDecimal importe;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 12)
     private Frecuencia frecuencia;
 
     @Column(name = "fecha_inicio", nullable = false)
@@ -90,6 +91,29 @@ public class PagoRecurrente {
             }
         }
         return fechas;
+    }
+
+    /**
+     * La primera vez que toca este pago en "desde" o después.
+     * Ejemplo: alquiler mensual desde el 01/01 y hoy es 10/11 → 01/12.
+     */
+    public LocalDate proximaFechaDesde(LocalDate desde) {
+        for (long veces = 0; ; veces++) {
+            LocalDate fecha = frecuencia.repeticion(fechaInicio, veces);
+            if (!fecha.isBefore(desde)) {
+                return fecha;
+            }
+        }
+    }
+
+    /**
+     * Cuánto cuesta este pago "al mes", repartiendo lo que se paga en un año entre 12.
+     * Ejemplos: 420 € al año → 35,00 €/mes; 60 € cada trimestre → 20,00 €/mes; 30 € a la semana → 130,00 €/mes.
+     * Redondeo "HALF_UP": el de toda la vida (16,665 → 16,67).
+     */
+    public BigDecimal importeMensual() {
+        return importe.multiply(BigDecimal.valueOf(frecuencia.vecesAlAnio()))
+                .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
     }
 
     public Long getId() {

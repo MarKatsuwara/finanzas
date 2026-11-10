@@ -64,6 +64,57 @@ class PagoRecurrenteFechasTest {
     }
 
     @Test
+    void bimestralTocaCadaDosMeses() {
+        PagoRecurrente luz = pago(Frecuencia.BIMESTRAL, fecha(2026, 1, 10));
+
+        assertThat(luz.fechasEntre(fecha(2026, 1, 1), fecha(2026, 8, 31)))
+                .containsExactly(fecha(2026, 1, 10), fecha(2026, 3, 10), fecha(2026, 5, 10), fecha(2026, 7, 10));
+    }
+
+    @Test
+    void trimestralDelDia31UsaElUltimoDiaDelMes() {
+        PagoRecurrente pago = pago(Frecuencia.TRIMESTRAL, fecha(2026, 1, 31));
+
+        assertThat(pago.fechasEntre(fecha(2026, 1, 1), fecha(2026, 12, 31)))
+                .containsExactly(
+                        fecha(2026, 1, 31),
+                        fecha(2026, 4, 30),  // abril no tiene 31
+                        fecha(2026, 7, 31),
+                        fecha(2026, 10, 31));
+    }
+
+    @Test
+    void semestralDel31DeAgostoCaeEnFebreroYVuelveAAgosto() {
+        PagoRecurrente pago = pago(Frecuencia.SEMESTRAL, fecha(2026, 8, 31));
+
+        assertThat(pago.fechasEntre(fecha(2026, 1, 1), fecha(2027, 12, 31)))
+                .containsExactly(fecha(2026, 8, 31), fecha(2027, 2, 28), fecha(2027, 8, 31));
+    }
+
+    @Test
+    void proximaFechaEsLaPrimeraDesdeHoy() {
+        PagoRecurrente alquiler = pago(Frecuencia.MENSUAL, fecha(2026, 1, 1));
+
+        assertThat(alquiler.proximaFechaDesde(fecha(2026, 11, 10))).isEqualTo(fecha(2026, 12, 1));
+        assertThat(alquiler.proximaFechaDesde(fecha(2026, 12, 1))).isEqualTo(fecha(2026, 12, 1)); // si toca hoy, es hoy
+    }
+
+    @Test
+    void siEmpiezaEnElFuturoLaProximaFechaEsElInicio() {
+        PagoRecurrente pago = pago(Frecuencia.ANUAL, fecha(2027, 3, 15));
+
+        assertThat(pago.proximaFechaDesde(fecha(2026, 11, 10))).isEqualTo(fecha(2027, 3, 15));
+    }
+
+    @Test
+    void importeMensualRepartePorMesesYRedondea() {
+        PagoRecurrente semestral = new PagoRecurrente("Matrícula", TipoMovimiento.GASTO, new BigDecimal("100.00"),
+                Frecuencia.SEMESTRAL, fecha(2026, 1, 1), true, null);
+
+        assertThat(semestral.importeMensual()).isEqualByComparingTo("16.67"); // 200 / 12 = 16,666...
+    }
+
+    @Test
     void lasDosFechasDelPeriodoCuentan() {
         PagoRecurrente pago = pago(Frecuencia.MENSUAL, fecha(2026, 1, 10));
 

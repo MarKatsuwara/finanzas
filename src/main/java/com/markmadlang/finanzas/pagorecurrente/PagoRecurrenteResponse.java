@@ -15,11 +15,14 @@ public record PagoRecurrenteResponse(
         Frecuencia frecuencia,
         LocalDate fechaInicio,
         boolean activo,
-        CategoriaResponse categoria
+        CategoriaResponse categoria,
+        BigDecimal importeMensual,  // lo que cuesta repartido por meses (420 €/año → 35,00)
+        LocalDate proximaFecha      // la próxima vez que toca (null si está desactivado)
 ) {
 
-    static PagoRecurrenteResponse desde(PagoRecurrente p) {
+    static PagoRecurrenteResponse desde(PagoRecurrente p, LocalDate hoy) {
         return new PagoRecurrenteResponse(p.getId(), p.getDescripcion(), p.getTipo(), p.getImporte(),
-                p.getFrecuencia(), p.getFechaInicio(), p.isActivo(), CategoriaResponse.desde(p.getCategoria()));
+                p.getFrecuencia(), p.getFechaInicio(), p.isActivo(), CategoriaResponse.desde(p.getCategoria()),
+                p.importeMensual(), p.isActivo() ? p.proximaFechaDesde(hoy) : null);
     }
 }

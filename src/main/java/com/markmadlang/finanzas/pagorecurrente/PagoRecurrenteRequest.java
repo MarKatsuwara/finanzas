@@ -25,7 +25,7 @@ public record PagoRecurrenteRequest(
         @Digits(integer = 10, fraction = 2, message = "El importe admite como máximo 10 cifras enteras y 2 decimales")
         BigDecimal importe,
 
-        @NotNull(message = "La frecuencia es obligatoria (SEMANAL, MENSUAL o ANUAL)")
+        @NotNull(message = "La frecuencia es obligatoria (SEMANAL, MENSUAL, BIMESTRAL, TRIMESTRAL, SEMESTRAL o ANUAL)")
         Frecuencia frecuencia,
 
         @NotNull(message = "La fecha de inicio es obligatoria")
