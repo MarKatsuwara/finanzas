@@ -35,6 +35,12 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- Comprueba que los datos que llegan son correctos (@NotNull, @Positive...) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 		<!-- Permite a Java guardar y leer datos de la base de datos -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
