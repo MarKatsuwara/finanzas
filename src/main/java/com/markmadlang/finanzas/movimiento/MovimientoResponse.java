@@ -1,5 +1,7 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.categoria.CategoriaResponse;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -12,10 +14,12 @@ public record MovimientoResponse(
         TipoMovimiento tipo,
         BigDecimal importe,
         LocalDate fecha,
-        String descripcion
+        String descripcion,
+        CategoriaResponse categoria // null si no tiene
 ) {
 
     static MovimientoResponse desde(Movimiento m) {
-        return new MovimientoResponse(m.getId(), m.getTipo(), m.getImporte(), m.getFecha(), m.getDescripcion());
+        return new MovimientoResponse(m.getId(), m.getTipo(), m.getImporte(), m.getFecha(), m.getDescripcion(),
+                CategoriaResponse.desde(m.getCategoria()));
     }
 }

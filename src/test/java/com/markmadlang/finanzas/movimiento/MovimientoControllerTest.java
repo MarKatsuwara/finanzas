@@ -1,5 +1,7 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.categoria.Categoria;
+import com.markmadlang.finanzas.categoria.CategoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +39,66 @@ class MovimientoControllerTest {
     @Autowired
     private MovimientoRepository repository;
 
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+
     @BeforeEach
     void limpiarBaseDeDatos() {
         repository.deleteAll(); // cada test empieza con la tabla vacía
     }
 
     private Movimiento guardar(TipoMovimiento tipo, String importe, String fecha, String descripcion) {
-        return repository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha), descripcion));
+        return repository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha), descripcion, null));
+    }
+
+    /** Busca una de las categorías que crea la migración V2. */
+    private Categoria categoria(String nombre) {
+        return categoriaRepository.findByNombreIgnoreCase(nombre).orElseThrow();
+    }
+
+    @Test
+    void crearConCategoriaDevuelveLaCategoria() throws Exception {
+        Long comidaId = categoria("Comida").getId();
+        String json = """
+                {"tipo": "GASTO", "importe": 20, "fecha": "2026-11-10", "descripcion": "Supermercado", "categoriaId": %d}
+                """.formatted(comidaId);
+
+        mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.categoria.id").value(comidaId))
+                .andExpect(jsonPath("$.categoria.nombre").value("Comida"));
+    }
+
+    @Test
+    void crearSinCategoriaDevuelveCategoriaNula() throws Exception {
+        String json = """
+                {"tipo": "GASTO", "importe": 20, "fecha": "2026-11-10", "descripcion": "Sin clasificar"}
+                """;
+
+        mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.categoria").doesNotExist());
+    }
+
+    @Test
+    void crearConCategoriaQueNoExisteDevuelve400() throws Exception {
+        String json = """
+                {"tipo": "GASTO", "importe": 20, "fecha": "2026-11-10", "descripcion": "Algo", "categoriaId": 999999}
+                """;
+
+        mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.categoriaId").value("No existe ninguna categoría con id 999999"));
+    }
+
+    @Test
+    void listarIncluyeLaCategoria() throws Exception {
+        repository.save(new Movimiento(TipoMovimiento.INGRESO, new BigDecimal("1500.00"),
+                LocalDate.parse("2026-11-01"), "Nómina", categoria("Nómina")));
+
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].categoria.nombre").value("Nómina"));
     }
 
     @Test

@@ -1,6 +1,5 @@
-package com.markmadlang.finanzas;
+package com.markmadlang.finanzas.error;
 
-import com.markmadlang.finanzas.movimiento.MovimientoNoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,19 +16,34 @@ import java.util.Map;
 @RestControllerAdvice
 public class ManejadorErrores {
 
-    /** Id que no existe → 404 Not Found */
-    @ExceptionHandler(MovimientoNoEncontradoException.class)
-    public ProblemDetail noEncontrado(MovimientoNoEncontradoException e) {
+    /** Algo que no existe → 404 Not Found */
+    @ExceptionHandler(NoEncontradoException.class)
+    public ProblemDetail noEncontrado(NoEncontradoException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    /** Datos que no cumplen las reglas → 400 Bad Request, con el motivo de cada campo */
+    /** Choca con lo que ya hay guardado → 409 Conflict */
+    @ExceptionHandler(ConflictoException.class)
+    public ProblemDetail conflicto(ConflictoException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    /** Datos que no cumplen las reglas (@NotNull, @Positive...) → 400 Bad Request */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail datosNoValidos(MethodArgumentNotValidException e) {
         Map<String, String> errores = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
                 .forEach(error -> errores.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        return problemaDeDatos(errores);
+    }
 
+    /** Un campo con un valor imposible (categoría que no existe...) → 400 Bad Request */
+    @ExceptionHandler(CampoNoValidoException.class)
+    public ProblemDetail campoNoValido(CampoNoValidoException e) {
+        return problemaDeDatos(Map.of(e.getCampo(), e.getMessage()));
+    }
+
+    private ProblemDetail problemaDeDatos(Map<String, String> errores) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Hay datos que no son válidos");
         problema.setProperty("errores", errores);
         return problema;

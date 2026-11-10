@@ -28,6 +28,9 @@ public record MovimientoRequest(
 
         @NotBlank(message = "La descripción es obligatoria")
         @Size(max = 255, message = "La descripción no puede pasar de 255 caracteres")
-        String descripcion
+        String descripcion,
+
+        // Opcional: si no se envía, el movimiento queda sin categoría
+        Long categoriaId
 ) {
 }

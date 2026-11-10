@@ -1,12 +1,16 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.categoria.Categoria;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
@@ -38,20 +42,27 @@ public class Movimiento {
     @Column(nullable = false)
     private String descripcion;
 
+    // Muchos movimientos pueden tener la misma categoría (relación "muchos a uno").
+    // LAZY = la categoría solo se carga de la base de datos cuando hace falta.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id") // puede ser null: la categoría es opcional
+    private Categoria categoria;
+
     /** JPA necesita un constructor vacío. Es protected para que no lo usemos nosotros. */
     protected Movimiento() {
     }
 
-    public Movimiento(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion) {
-        actualizar(tipo, importe, fecha, descripcion);
+    public Movimiento(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion, Categoria categoria) {
+        actualizar(tipo, importe, fecha, descripcion, categoria);
     }
 
     /** Cambia todos los datos de golpe (se usa al crear y al editar). */
-    public void actualizar(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion) {
+    public void actualizar(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion, Categoria categoria) {
         this.tipo = tipo;
         this.importe = importe;
         this.fecha = fecha;
         this.descripcion = descripcion;
+        this.categoria = categoria;
     }
 
     public Long getId() {
@@ -72,5 +83,9 @@ public class Movimiento {
 
     public String getDescripcion() {
         return descripcion;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
     }
 }
