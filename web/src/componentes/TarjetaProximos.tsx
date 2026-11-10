@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { ErrorApi, PrevisionBanco } from '../api'
 import { diaYMes, euros, fechaCorta } from '../formato'
-import { Dinero } from './Dinero'
 import { ErrorCarga } from './ErrorCarga'
 
 interface Props {
@@ -53,14 +52,6 @@ export function TarjetaProximos({ datos, error, cargando, recargar }: Props) {
 
       {datos && dias.length > 0 && (
         <>
-          {/* Los títulos de las columnas */}
-          <div className="dias-cabecera etiqueta" aria-hidden="true">
-            <span>Día</span>
-            <span>Concepto</span>
-            <span>Importe</span>
-            <span>Te queda</span>
-          </div>
-
           <ol className="dias">
             {visibles.map((dia) => {
               const { dia: numero, mes } = diaYMes(dia.fecha)
@@ -71,23 +62,32 @@ export function TarjetaProximos({ datos, error, cargando, recargar }: Props) {
                     <span className="fecha-mes">{mes}</span>
                   </div>
 
-                  <ul className="dia-movimientos">
-                    {dia.movimientos.map((m, i) => (
-                      <li key={i}>
-                        <span className="dia-nombre">
+                  <div className="dia-contenido">
+                    {/* Lo que entra y sale ese día: "Netflix · −12,99 €" */}
+                    <ul className="dia-movimientos">
+                      {dia.movimientos.map((m, i) => (
+                        <li key={i}>
                           {m.descripcion}
-                          {m.origen === 'MOVIMIENTO' && <span className="etiqueta"> · apuntado</span>}
-                        </span>
-                        <span className={m.tipo === 'INGRESO' ? 'num ingreso' : 'num'}>
-                          {m.tipo === 'INGRESO' ? '+' : '−'}
-                          {euros(m.importe)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                          {m.origen === 'MOVIMIENTO' && <span className="etiqueta"> (apuntado)</span>}
+                          <span className="separador" aria-hidden="true"> · </span>
+                          <span className={m.tipo === 'INGRESO' ? 'num importe ingreso' : 'num importe'}>
+                            {m.tipo === 'INGRESO' ? '+' : '−'}
+                            {euros(m.importe)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
 
-                  <div className="dia-saldo">
-                    <Dinero cantidad={dia.saldoAlFinal} />
+                    {/* Y cómo queda tu dinero al acabar ese día */}
+                    {dia.saldoAlFinal < 0 ? (
+                      <p className="dia-saldo negativo">
+                        Te quedarías en <span className="num">{euros(dia.saldoAlFinal)}</span>
+                      </p>
+                    ) : (
+                      <p className="dia-saldo">
+                        Te quedan <span className="num">{euros(dia.saldoAlFinal)}</span>
+                      </p>
+                    )}
                   </div>
                 </li>
               )

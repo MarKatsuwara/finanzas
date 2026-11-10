@@ -271,23 +271,16 @@ button, input, select { font: inherit; color: inherit; }
   align-items: start;
 }
 
-/* Próximos 30 días: cuatro columnas (día | concepto | importe | te queda).
-   Las medidas de la cabecera y de las filas son las mismas para que todo quede alineado. */
-.dias-cabecera {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 110px 120px;
-  gap: 16px;
-  padding-bottom: 8px;
-  font-size: 13px;
-}
-.dias-cabecera span:nth-child(n + 3) { text-align: right; } /* Importe y Te queda, a la derecha */
+/* Próximos 30 días: cada día es un bloque (fecha a la izquierda, lo que pasa a la derecha) */
+.dias { list-style: none; margin: 0; padding: 0; }
 .dia {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 120px;
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 16px;
+  align-items: start;
+  padding: 14px 0;
 }
-.dias { list-style: none; margin: 0; padding: 0; }
-.dia { padding: 12px 0; border-top: 1px solid var(--rule); align-items: center; }
+.dia + .dia { border-top: 1px solid var(--rule); }
 
 /* El cuadradito de la fecha, en el azul pálido de la app */
 .fecha-chip {
@@ -305,17 +298,13 @@ button, input, select { font: inherit; color: inherit; }
 .fecha-dia { font-weight: 600; font-size: 17px; font-variant-numeric: tabular-nums; }
 .fecha-mes { font-size: 12px; }
 
-.dia-movimientos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-/* Cada pago del día: concepto a la izquierda, importe en su columna */
-.dia-movimientos li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 110px;
-  gap: 16px;
-  font-size: var(--fs-body);
-}
-.dia-movimientos li .num { text-align: right; }
-.dia-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dia-saldo { text-align: right; }
+.dia-contenido { display: flex; flex-direction: column; gap: 6px; padding-top: 2px; }
+.dia-movimientos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.dia-movimientos .separador { color: var(--muted); }
+.dia-movimientos .importe { font-weight: 600; white-space: nowrap; }
+.dia-saldo { color: var(--muted); font-size: var(--fs-small); }
+.dia-saldo .num { color: var(--text); font-weight: 600; }
+.dia-saldo.negativo, .dia-saldo.negativo .num { color: var(--negative); }
 
 /* El resumen de abajo: lo más bajo y con cuánto acabas */
 .dias-resumen { margin-top: 8px; }
@@ -539,9 +528,7 @@ a.boton { display: inline-flex; align-items: center; text-decoration: none; }
 
 /* Solo móvil (menos de 640 px) */
 @media (max-width: 640px) {
-  .dias-cabecera { grid-template-columns: 44px minmax(0, 1fr) 88px 92px; gap: 12px; }
-  .dia { grid-template-columns: 44px minmax(0, 1fr) 92px; gap: 12px; }
-  .dia-movimientos li { grid-template-columns: minmax(0, 1fr) 88px; gap: 12px; font-size: var(--fs-small); }
+  .dia { grid-template-columns: 44px minmax(0, 1fr); gap: 12px; }
   .fecha-chip { width: 44px; height: 44px; }
   .titulo { flex-wrap: wrap; align-items: flex-start; }
   .selector-mes { width: 100%; }
