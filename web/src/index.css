@@ -404,6 +404,64 @@ button, input, select { font: inherit; color: inherit; }
 .formulario-movimiento .campo-crece input { width: 100%; }
 
 /* =========================================================
+   5d. PANTALLA DE GASTOS FIJOS
+   ========================================================= */
+.cifra-con-unidad { display: flex; align-items: baseline; gap: 10px; }
+.unidad { color: var(--muted); font-size: var(--fs-section); }
+
+.fijos { list-style: none; margin: 0; padding: 0; }
+.fijo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+}
+.fijo-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fijo-linea { display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; }
+.fijo-linea .chip { margin-left: 8px; }
+.fijo-nombre { font-weight: 500; }
+.fijo-linea .separador { color: var(--muted); }
+.fijo-linea .importe { font-weight: 600; white-space: nowrap; }
+.fijo-acciones { display: flex; align-items: center; gap: 16px; flex: none; font-size: var(--fs-small); }
+.fijo-apagado .fijo-texto { opacity: 0.55; }
+
+/* El interruptor (encendido = color de la app) */
+.interruptor {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--control);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.interruptor-bola {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.15s;
+}
+.interruptor[aria-checked="true"] { background: var(--positive); }
+.interruptor[aria-checked="true"] .interruptor-bola { transform: translateX(16px); }
+.interruptor:disabled { opacity: 0.6; cursor: default; }
+
+/* El formulario en columna (para la tarjeta estrecha de la derecha) */
+.formulario-vertical { display: flex; flex-direction: column; gap: 14px; }
+.formulario-vertical .segmentado { display: flex; }
+.formulario-vertical .segmentado button { flex: 1; }
+.formulario-vertical .campo input, .formulario-vertical .campo select { width: 100%; min-width: 0; }
+.campos-juntos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.al-mes { margin-top: -6px; color: var(--accent-ink); }
+
+/* =========================================================
    6. BOTONES Y FORMULARIOS
    ========================================================= */
 .boton {

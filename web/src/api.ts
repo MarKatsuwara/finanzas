@@ -159,3 +159,19 @@ export interface ResumenMes {
   ingresosPorCategoria: TotalCategoria[]
   gastosPorCategoria: TotalCategoria[]
 }
+
+export type Frecuencia = 'SEMANAL' | 'CADA_4_SEMANAS' | 'MENSUAL' | 'BIMESTRAL' | 'TRIMESTRAL' | 'SEMESTRAL' | 'ANUAL'
+
+/** Un gasto o ingreso fijo (de /api/pagos-recurrentes). */
+export interface PagoRecurrente {
+  id: number
+  descripcion: string
+  tipo: 'INGRESO' | 'GASTO'
+  importe: number
+  frecuencia: Frecuencia
+  fechaInicio: string
+  activo: boolean
+  categoria: Categoria | null
+  importeMensual: number       // lo que cuesta repartido por meses
+  proximaFecha: string | null  // null si está desactivado
+}

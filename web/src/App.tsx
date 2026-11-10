@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { SelectorTema } from './componentes/SelectorTema'
+import { GastosFijos } from './pantallas/GastosFijos'
 import { Inicio } from './pantallas/Inicio'
 import { Movimientos } from './pantallas/Movimientos'
 
@@ -36,6 +37,17 @@ const PANTALLAS: Pantalla[] = [
       </svg>
     ),
     contenido: <Movimientos />,
+  },
+  {
+    id: 'fijos',
+    nombre: 'Gastos fijos',
+    icono: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <path d="M2.5 7a5.5 5.5 0 0 1 9.6-3.6M13.5 9a5.5 5.5 0 0 1-9.6 3.6" strokeLinecap="round" />
+        <path d="M12.5 1.5v2.5H10M3.5 14.5V12H6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    contenido: <GastosFijos />,
   },
 ]
 
