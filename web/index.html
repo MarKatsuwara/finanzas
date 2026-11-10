@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finanzas</title>
+    <!-- La letra de la app: Manrope -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Pone el tema elegido ANTES de pintar la página, para que no se vea un "flash" del otro tema -->
+    <script>
+      try {
+        var tema = localStorage.getItem('finanzas-tema')
+        if (tema === 'claro' || tema === 'oscuro') document.documentElement.dataset.tema = tema
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,344 @@
+/* =========================================================
+   1. TOKENS: los colores y medidas de toda la app.
+   Si quieres cambiar un color, cámbialo AQUÍ y cambia en todas partes.
+
+   light-dark(CLARO, OSCURO): el navegador usa el primero en tema claro
+   y el segundo en tema oscuro. Así cada color está en una sola línea.
+   ========================================================= */
+:root {
+  color-scheme: light dark; /* por defecto: lo que diga el sistema */
+
+  /* Fondos */
+  --ground:   light-dark(#f3f5f7, #111214);  /* el fondo de la página */
+  --surface:  light-dark(#ffffff, #1a1b1e);  /* las tarjetas */
+  --raised:   light-dark(#f2f8fd, #22252a);  /* zonas destacadas dentro de una tarjeta */
+  --active:   light-dark(#e9ebee, #26282c);  /* el botón del menú seleccionado */
+  --hover:    light-dark(#f6f7f8, #222428);  /* al pasar el ratón por encima */
+  --skeleton: light-dark(#eceef1, #26282c);  /* las barras grises mientras carga */
+
+  /* Líneas */
+  --border:      light-dark(#e6e6e6, #2a2c30);  /* borde de las tarjetas */
+  --rule:        light-dark(#e3edf6, #2e3238);  /* separador entre filas */
+  --control:     light-dark(#d6d9dd, #3e4146);  /* borde de los campos de formulario */
+
+  /* Texto */
+  --text:  light-dark(#1b1d1f, #f2f3f4);  /* texto principal */
+  --muted: light-dark(#5c6064, #a9adb2);  /* texto secundario (gris) */
+
+  /* Color de la app (azul cobalto; en oscuro, un poco más claro para que se lea) */
+  --accent:      light-dark(#1d5fd6, #6b9bf0);
+  --accent-soft: light-dark(#dcf1ff, #1b2a42);
+  --accent-ink:  light-dark(#0a3a80, #b9d3ff);
+
+  /* Dinero que entra / avisos */
+  --positive: light-dark(#2f7a45, #5cc685);
+  --negative: light-dark(#c41c29, #f2707a);
+  --pill-positive-bg: light-dark(#dcfae5, #17301f);
+  --pill-positive-ink: light-dark(#04250e, #8be0a9);
+  --pill-negative-bg: light-dark(#ffedea, #3a1d20);
+  --pill-negative-ink: light-dark(#831c1e, #ffb3b3);
+
+  /* Botón principal: casi negro en claro, blanco en oscuro */
+  --primary:       light-dark(#1b1d1f, #f2f3f4);
+  --primary-hover: light-dark(#33363a, #d9dbde);
+  --primary-text:  light-dark(#ffffff, #111214);
+
+  /* Formas y espacios */
+  --radius-card: 20px;
+  --radius-inner: 12px;
+  --radius-control: 10px;
+  --gap: 24px;
+  --pad: 24px;
+  --control-height: 40px;
+  --sidebar-width: 240px;
+
+  /* Tamaños de letra */
+  --fs-title: 28px;
+  --fs-section: 20px;
+  --fs-kpi: 36px;
+  --fs-body: 16px;
+  --fs-small: 14px;
+
+  --font: "Manrope", Inter, system-ui, sans-serif;
+}
+
+/* Si la persona elige un tema en el selector, manda sobre el del sistema */
+:root[data-tema="claro"]  { color-scheme: light; }
+:root[data-tema="oscuro"] { color-scheme: dark; }
+
+/* =========================================================
+   2. BASE
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, p { margin: 0; }
+
+button, input, select { font: inherit; color: inherit; }
+
+/* Los números siempre con cifras del mismo ancho, para que se alineen */
+.num { font-variant-numeric: tabular-nums; }
+
+/* Se ve al moverse con el teclado (tabulador) */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* =========================================================
+   3. ESTRUCTURA: menú lateral + contenido
+   ========================================================= */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
+}
+
+.menu {
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  font-weight: 600;
+  font-size: 18px;
+}
+.marca svg { width: 28px; height: 28px; flex: none; }
+
+.menu-cuerpo { display: flex; flex-direction: column; flex: 1; gap: 24px; }
+.menu nav { display: flex; flex-direction: column; gap: 2px; }
+
+/* Selector de tema, abajo del todo del menú */
+.tema { margin-top: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.tema-opciones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 3px;
+  background: var(--active);
+  border-radius: var(--radius-control);
+}
+.tema-opciones button {
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tema-opciones button:hover { color: var(--text); }
+.tema-opciones button[aria-pressed="true"] { background: var(--surface); color: var(--text); }
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+.menu-item svg { width: 16px; height: 16px; flex: none; }
+.menu-item:hover { color: var(--text); background: var(--hover); }
+.menu-item[aria-current="page"] { color: var(--text); background: var(--active); }
+
+.boton-menu { display: none; }
+
+.contenido {
+  padding: 36px 40px 64px;
+  max-width: 1280px;
+  width: 100%;
+  min-width: 0; /* que el contenido nunca empuje la página hacia los lados */
+}
+
+/* Fila del título: título a la izquierda, acciones a la derecha */
+.titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: var(--gap);
+}
+.titulo h1 { font-size: var(--fs-title); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.titulo p { color: var(--muted); margin-top: 4px; }
+
+/* =========================================================
+   4. TARJETAS
+   ========================================================= */
+.tarjeta {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--pad);
+}
+.tarjeta-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.tarjeta-cabecera h2 { font-size: var(--fs-section); font-weight: 500; }
+
+/* Cantidades de dinero */
+.dinero { font-weight: 600; white-space: nowrap; }
+.dinero .centimos { color: var(--muted); font-size: 0.6em; font-weight: 500; }
+.dinero-grande { font-size: var(--fs-kpi); line-height: 1.1; letter-spacing: -0.02em; }
+.negativo { color: var(--negative); }
+.negativo .centimos { color: var(--negative); }
+
+.etiqueta { color: var(--muted); font-size: var(--fs-small); }
+
+/* =========================================================
+   5. SALDO DEL BANCO (pantalla de inicio)
+   ========================================================= */
+.saldo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 380px);
+  gap: var(--gap);
+  align-items: start;
+}
+.saldo-principal { display: flex; flex-direction: column; gap: 8px; }
+.saldo-principal .acciones { margin-top: 16px; }
+
+/* El desglose: "apuntaste X + ingresos - gastos = hoy" */
+.desglose {
+  background: var(--raised);
+  border-radius: var(--radius-inner);
+  padding: 8px 16px;
+  margin: 0;
+}
+.desglose div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: var(--fs-small);
+}
+.desglose div + div { border-top: 1px solid var(--rule); }
+.desglose dt { color: var(--muted); }
+.desglose dd { margin: 0; font-weight: 500; }
+.desglose .total dt, .desglose .total dd { color: var(--text); font-weight: 600; }
+.ingreso { color: var(--positive); }
+
+/* =========================================================
+   6. BOTONES Y FORMULARIOS
+   ========================================================= */
+.boton {
+  height: var(--control-height);
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--control);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: var(--fs-small);
+  cursor: pointer;
+  transition: transform 0.1s, background-color 0.15s;
+}
+.boton:hover { background: var(--hover); }
+.boton:active { transform: scale(0.97); }
+.boton:disabled { opacity: 0.6; cursor: default; }
+.boton-principal { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
+.boton-principal:hover { background: var(--primary-hover); }
+.boton-texto { border: none; background: none; padding: 0; height: auto; color: var(--accent-ink); }
+.boton-texto:hover { background: none; text-decoration: underline; }
+
+.formulario { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label { font-size: var(--fs-small); font-weight: 500; }
+.campo input {
+  height: var(--control-height);
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  min-width: 160px;
+}
+.campo-error { color: var(--negative); font-size: var(--fs-small); width: 100%; }
+
+/* =========================================================
+   7. ESTADOS: cargando, vacío y error
+   ========================================================= */
+/* Mientras carga: barras grises del tamaño real del dato */
+.cargando {
+  display: block;
+  background: var(--skeleton);
+  border-radius: 6px;
+  height: 1em;
+}
+.estado { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.estado p { max-width: 52ch; }
+.aviso-error { color: var(--pill-negative-ink); }
+
+/* =========================================================
+   8. TABLET Y MÓVIL (pantallas de menos de 1000 px)
+   ========================================================= */
+@media (max-width: 1000px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+
+  /* El menú lateral se convierte en una barra arriba */
+  .menu {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    background: var(--ground);
+    z-index: 10;
+  }
+  .marca { padding: 0; }
+  .boton-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border: none; background: none; cursor: pointer;
+  }
+  /* El menú (pantallas + tema) se abre como una hoja que tapa la pantalla */
+  .menu-cuerpo {
+    display: none;
+    position: fixed;
+    inset: 56px 0 0 0;
+    background: var(--ground);
+    padding: 16px 16px 32px;
+  }
+  .menu.abierto .menu-cuerpo { display: flex; }
+  .tema { padding: 0; }
+  .tema-opciones button { height: 40px; font-size: var(--fs-small); }
+  .menu-item { height: 48px; font-size: var(--fs-body); }
+
+  .contenido { padding: 16px 24px 48px; }
+}
+
+/* Solo móvil (menos de 640 px) */
+@media (max-width: 640px) {
+  .contenido { padding: 16px 16px 48px; }
+  .titulo h1 { font-size: 24px; }
+  .tarjeta { padding: 20px; }
+  .saldo { grid-template-columns: 1fr; }
+  .dinero-grande { font-size: 32px; }
+}
+
+/* Si la persona prefiere menos movimiento, quitamos las animaciones */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

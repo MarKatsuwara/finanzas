@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Herramienta de diseño (archivos de trabajo) ###
+.taste-skill/
