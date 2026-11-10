@@ -41,7 +41,7 @@ public class PagoRecurrente {
     private BigDecimal importe;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 12)
+    @Column(nullable = false, length = 20)
     private Frecuencia frecuencia;
 
     @Column(name = "fecha_inicio", nullable = false)

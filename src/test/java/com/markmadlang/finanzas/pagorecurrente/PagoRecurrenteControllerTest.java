@@ -100,6 +100,21 @@ class PagoRecurrenteControllerTest {
     }
 
     @Test
+    void crearCadaCuatroSemanasFunciona() throws Exception {
+        String json = """
+                {"descripcion": "Gimnasio", "tipo": "GASTO", "importe": 30,
+                 "frecuencia": "CADA_4_SEMANAS", "fechaInicio": "2026-10-19"}
+                """;
+
+        // 19/10 + 28 días = 16/11 (hoy es 10/11)
+        mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.frecuencia").value("CADA_4_SEMANAS"))
+                .andExpect(jsonPath("$.importeMensual").value(32.50))
+                .andExpect(jsonPath("$.proximaFecha").value("2026-11-16"));
+    }
+
+    @Test
     void cadaFrecuenciaTieneSuCosteAlMes() throws Exception {
         guardar("Bote", "30.00", Frecuencia.SEMANAL, true);        // 30 × 52 / 12 = 130,00
         guardar("Netflix", "12.99", Frecuencia.MENSUAL, true);     // 12,99

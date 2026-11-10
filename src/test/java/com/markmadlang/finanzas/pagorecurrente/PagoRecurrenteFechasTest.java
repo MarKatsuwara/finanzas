@@ -64,6 +64,28 @@ class PagoRecurrenteFechasTest {
     }
 
     @Test
+    void cadaCuatroSemanasPuedeTocarDosVecesElMismoMes() {
+        PagoRecurrente gimnasio = pago(Frecuencia.CADA_4_SEMANAS, fecha(2026, 1, 5));
+
+        assertThat(gimnasio.fechasEntre(fecha(2026, 1, 1), fecha(2026, 4, 30)))
+                .containsExactly(
+                        fecha(2026, 1, 5),
+                        fecha(2026, 2, 2),
+                        fecha(2026, 3, 2),
+                        fecha(2026, 3, 30), // ¡dos veces en marzo!
+                        fecha(2026, 4, 27));
+    }
+
+    @Test
+    void cadaCuatroSemanasSonTreceVecesAlAnio() {
+        PagoRecurrente gimnasio = new PagoRecurrente("Gimnasio", TipoMovimiento.GASTO, new BigDecimal("30.00"),
+                Frecuencia.CADA_4_SEMANAS, fecha(2026, 1, 5), true, null);
+
+        assertThat(gimnasio.fechasEntre(fecha(2026, 1, 5), fecha(2027, 1, 3))).hasSize(13);
+        assertThat(gimnasio.importeMensual()).isEqualByComparingTo("32.50"); // 30 × 13 / 12
+    }
+
+    @Test
     void bimestralTocaCadaDosMeses() {
         PagoRecurrente luz = pago(Frecuencia.BIMESTRAL, fecha(2026, 1, 10));
 

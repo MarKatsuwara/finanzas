@@ -50,7 +50,7 @@ public class ManejadorErrores {
     public ProblemDetail jsonNoValido(HttpMessageNotReadableException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 "No se ha podido leer la petición: revisa que el JSON esté bien escrito y que los valores existan "
-                        + "(tipo: INGRESO o GASTO; frecuencia: SEMANAL, MENSUAL, BIMESTRAL, TRIMESTRAL, SEMESTRAL o ANUAL; "
+                        + "(tipo: INGRESO o GASTO; frecuencia: SEMANAL, CADA_4_SEMANAS, MENSUAL, BIMESTRAL, TRIMESTRAL, SEMESTRAL o ANUAL; "
                         + "fechas: AAAA-MM-DD)");
     }
 

@@ -9,6 +9,7 @@ import java.time.LocalDate;
  */
 public enum Frecuencia {
     SEMANAL(52),
+    CADA_4_SEMANAS(13), // cada 28 días: 13 veces al año, y algún mes toca dos veces
     MENSUAL(12),
     BIMESTRAL(6),   // cada 2 meses
     TRIMESTRAL(4),  // cada 3 meses
@@ -37,6 +38,7 @@ public enum Frecuencia {
     public LocalDate repeticion(LocalDate inicio, long veces) {
         return switch (this) {
             case SEMANAL -> inicio.plusWeeks(veces);
+            case CADA_4_SEMANAS -> inicio.plusWeeks(4 * veces);
             case MENSUAL -> inicio.plusMonths(veces);
             case BIMESTRAL -> inicio.plusMonths(2 * veces);
             case TRIMESTRAL -> inicio.plusMonths(3 * veces);
