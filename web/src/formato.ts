@@ -2,7 +2,8 @@
 // Cómo se escriben los números y las fechas en pantalla (en español).
 // =========================================================
 
-const EUROS = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+// useGrouping 'always': pone el punto de los miles también en números de 4 cifras (1.501 y no 1501)
+const EUROS = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
 /** 1501.26 → "1.501,26 €" */
 export function euros(cantidad: number): string {
@@ -53,4 +54,18 @@ export function hoyIso(): string {
 /** Convierte lo que escribe la persona ("12,50" o "12.50") en número. NaN si no es un número. */
 export function leerImporte(texto: string): number {
   return Number(texto.trim().replace(',', '.'))
+}
+
+/** "2026-11-15" → { dia: "15", mes: "nov" } (para el cuadradito de la fecha) */
+export function diaYMes(iso: string): { dia: string; mes: string } {
+  const fecha = aFecha(iso)
+  return {
+    dia: String(fecha.getDate()),
+    mes: fecha.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
+  }
+}
+
+/** "2026-11" → "noviembre" */
+export function nombreMes(mesIso: string): string {
+  return aFecha(`${mesIso}-01`).toLocaleDateString('es-ES', { month: 'long' })
 }

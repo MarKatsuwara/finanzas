@@ -199,7 +199,8 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Cantidades de dinero */
 .dinero { font-weight: 600; white-space: nowrap; }
-.dinero .centimos { color: var(--muted); font-size: 0.6em; font-weight: 500; }
+/* En los números grandes, los céntimos más pequeños y en gris */
+.dinero-grande .centimos, .dinero-medio .centimos { color: var(--muted); font-size: 0.6em; font-weight: 500; }
 .dinero-grande { font-size: var(--fs-kpi); line-height: 1.1; letter-spacing: -0.02em; }
 .negativo { color: var(--negative); }
 .negativo .centimos { color: var(--negative); }
@@ -216,7 +217,8 @@ button, input, select { font: inherit; color: inherit; }
   align-items: start;
 }
 .saldo-principal { display: flex; flex-direction: column; gap: 8px; }
-.saldo-principal .acciones { margin-top: 16px; }
+.saldo-principal { gap: 12px; }
+.saldo-principal .acciones { margin-top: 4px; }
 
 /* El desglose: "apuntaste X + ingresos - gastos = hoy" */
 .desglose {
@@ -237,6 +239,101 @@ button, input, select { font: inherit; color: inherit; }
 .desglose dd { margin: 0; font-weight: 500; }
 .desglose .total dt, .desglose .total dd { color: var(--text); font-weight: 600; }
 .ingreso { color: var(--positive); }
+
+/* El aviso: "En los próximos 30 días no bajarás de..." */
+.aviso {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: var(--radius-control);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+.aviso-bueno { background: var(--pill-positive-bg); color: var(--pill-positive-ink); }
+.aviso-malo  { background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+
+/* =========================================================
+   5b. PANTALLA DE INICIO: la fila de abajo
+   ========================================================= */
+.inicio { display: flex; flex-direction: column; gap: var(--gap); }
+.inicio-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* Próximos 30 días: cuatro columnas (día | concepto | importe | te queda).
+   Las medidas de la cabecera y de las filas son las mismas para que todo quede alineado. */
+.dias-cabecera {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 110px 120px;
+  gap: 16px;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
+.dias-cabecera span:nth-child(n + 3) { text-align: right; } /* Importe y Te queda, a la derecha */
+.dia {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 120px;
+  gap: 16px;
+}
+.dias { list-style: none; margin: 0; padding: 0; }
+.dia { padding: 12px 0; border-top: 1px solid var(--rule); align-items: center; }
+
+/* El cuadradito de la fecha, en el azul pálido de la app */
+.fecha-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-inner);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  line-height: 1.1;
+}
+.fecha-dia { font-weight: 600; font-size: 17px; font-variant-numeric: tabular-nums; }
+.fecha-mes { font-size: 12px; }
+
+.dia-movimientos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+/* Cada pago del día: concepto a la izquierda, importe en su columna */
+.dia-movimientos li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 16px;
+  font-size: var(--fs-body);
+}
+.dia-movimientos li .num { text-align: right; }
+.dia-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dia-saldo { text-align: right; }
+
+/* El resumen de abajo: lo más bajo y con cuánto acabas */
+.dias-resumen { margin-top: 8px; }
+
+/* Este mes */
+.mes { display: flex; flex-direction: column; gap: 20px; }
+.dinero-medio { font-size: 28px; line-height: 1.2; letter-spacing: -0.01em; }
+
+/* La barra de "lo que sale" contra "lo que entra" */
+.barra {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: transparent;
+}
+.barra span { position: absolute; top: 0; bottom: 0; left: 0; }
+.barra-entra { background: var(--skeleton); border-radius: 999px; }
+.barra-gastado { background: var(--accent); border-radius: 999px 0 0 999px; }
+.barra-pendiente { background: var(--accent); opacity: 0.35; }
+.barra-mala .barra-gastado, .barra-mala .barra-pendiente { background: var(--negative); }
+.barra-leyenda { display: flex; justify-content: space-between; margin-top: 8px; }
+
+/* Puntitos de color que explican la barra */
+.punto { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+.punto-gastado { background: var(--accent); }
+.punto-pendiente { background: var(--accent); opacity: 0.35; }
 
 /* =========================================================
    6. BOTONES Y FORMULARIOS
@@ -329,8 +426,17 @@ button, input, select { font: inherit; color: inherit; }
   .contenido { padding: 16px 24px 48px; }
 }
 
+/* Las dos tarjetas de abajo, una encima de otra (menos de 900 px) */
+@media (max-width: 900px) {
+  .inicio-fila { grid-template-columns: 1fr; }
+}
+
 /* Solo móvil (menos de 640 px) */
 @media (max-width: 640px) {
+  .dias-cabecera { grid-template-columns: 44px minmax(0, 1fr) 88px 92px; gap: 12px; }
+  .dia { grid-template-columns: 44px minmax(0, 1fr) 92px; gap: 12px; }
+  .dia-movimientos li { grid-template-columns: minmax(0, 1fr) 88px; gap: 12px; font-size: var(--fs-small); }
+  .fecha-chip { width: 44px; height: 44px; }
   .contenido { padding: 16px 16px 48px; }
   .titulo h1 { font-size: 24px; }
   .tarjeta { padding: 20px; }

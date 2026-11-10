@@ -75,3 +75,55 @@ export interface SaldoActual {
   gastosDesde: number
   saldoHoy: number
 }
+
+/** Algo que va a entrar o salir un día (de /api/saldo-banco/prevision). */
+export interface MovimientoPrevisto {
+  descripcion: string
+  tipo: 'INGRESO' | 'GASTO'
+  importe: number
+  origen: 'PAGO_RECURRENTE' | 'MOVIMIENTO'
+}
+
+/** Un día con movimientos y cómo queda el saldo al acabar ese día. */
+export interface DiaPrevisto {
+  fecha: string
+  movimientos: MovimientoPrevisto[]
+  saldoAlFinal: number
+}
+
+/** La previsión del saldo del banco, día a día. */
+export interface PrevisionBanco {
+  hoy: string
+  saldoHoy: number
+  hasta: string
+  dias: DiaPrevisto[]
+  saldoFinal: number
+  saldoMinimo: number
+  primerDiaEnNegativo: string | null
+  numerosRojos: boolean
+  mensaje: string
+}
+
+/** Un pago recurrente que toca en una fecha concreta. */
+export interface ProximoPago {
+  fecha: string
+  pagoRecurrenteId: number
+  descripcion: string
+  tipo: 'INGRESO' | 'GASTO'
+  importe: number
+  categoria: { id: number; nombre: string } | null
+}
+
+/** Cómo vas a acabar el mes (de /api/prevision). */
+export interface PrevisionMes {
+  mes: string // "2026-11"
+  hoy: string
+  ingresosApuntados: number
+  gastosApuntados: number
+  ingresosPendientes: number
+  gastosPendientes: number
+  saldoPrevisto: number
+  numerosRojos: boolean
+  mensaje: string
+  pagosPendientes: ProximoPago[]
+}
