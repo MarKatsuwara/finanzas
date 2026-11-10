@@ -16,6 +16,8 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Una fila de la tabla "pagos_recurrentes": un pago que se repite cada semana, mes o año. */
 @Entity
@@ -70,6 +72,24 @@ public class PagoRecurrente {
         this.fechaInicio = fechaInicio;
         this.activo = activo;
         this.categoria = categoria;
+    }
+
+    /**
+     * Todas las fechas en las que toca este pago entre "desde" y "hasta" (las dos incluidas).
+     * Va probando la repetición 0, 1, 2... hasta pasarse de "hasta".
+     */
+    public List<LocalDate> fechasEntre(LocalDate desde, LocalDate hasta) {
+        List<LocalDate> fechas = new ArrayList<>();
+        for (long veces = 0; ; veces++) {
+            LocalDate fecha = frecuencia.repeticion(fechaInicio, veces);
+            if (fecha.isAfter(hasta)) {
+                break; // ya nos hemos pasado del periodo: paramos
+            }
+            if (!fecha.isBefore(desde)) {
+                fechas.add(fecha); // está dentro del periodo: la guardamos
+            }
+        }
+        return fechas;
     }
 
     public Long getId() {

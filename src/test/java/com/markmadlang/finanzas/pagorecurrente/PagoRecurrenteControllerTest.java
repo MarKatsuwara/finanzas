@@ -210,6 +210,75 @@ class PagoRecurrenteControllerTest {
         assertThat(repository.existsById(p.getId())).isFalse();
     }
 
+    // ---------- Próximos pagos ----------
+
+    private void guardarConInicio(String descripcion, String importe, Frecuencia frecuencia,
+                                  LocalDate inicio, boolean activo) {
+        repository.save(new PagoRecurrente(descripcion, TipoMovimiento.GASTO, new BigDecimal(importe),
+                frecuencia, inicio, activo, null));
+    }
+
+    @Test
+    void proximosDevuelveLasFechasOrdenadasYSinLosInactivos() throws Exception {
+        guardarConInicio("Alquiler", "650.00", Frecuencia.MENSUAL, LocalDate.of(2026, 1, 1), true);
+        guardarConInicio("Netflix", "12.99", Frecuencia.MENSUAL, LocalDate.of(2026, 3, 15), true);
+        guardarConInicio("Gimnasio", "30.00", Frecuencia.MENSUAL, LocalDate.of(2026, 1, 20), false); // de baja
+
+        // Del 10/11 al 09/12 (30 días): Netflix el 15/11 y Alquiler el 01/12
+        mockMvc.perform(get(URL + "/proximos").param("desde", "2026-11-10").param("dias", "30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].fecha").value("2026-11-15"))
+                .andExpect(jsonPath("$[0].descripcion").value("Netflix"))
+                .andExpect(jsonPath("$[0].importe").value(12.99))
+                .andExpect(jsonPath("$[0].pagoRecurrenteId").isNumber())
+                .andExpect(jsonPath("$[1].fecha").value("2026-12-01"))
+                .andExpect(jsonPath("$[1].descripcion").value("Alquiler"));
+    }
+
+    @Test
+    void proximosConDiasCuentaElPrimerDiaYNoSePasa() throws Exception {
+        guardarConInicio("Alquiler", "650.00", Frecuencia.MENSUAL, LocalDate.of(2026, 1, 1), true);
+
+        // Todo diciembre: del 01/12 al 31/12. El 01/01 ya no entra.
+        mockMvc.perform(get(URL + "/proximos").param("desde", "2026-12-01").param("dias", "31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].fecha").value("2026-12-01"));
+    }
+
+    @Test
+    void proximosSinParametrosUsaHoyYTreintaDias() throws Exception {
+        guardarConInicio("Café semanal", "5.00", Frecuencia.SEMANAL, LocalDate.now(), true);
+
+        // Desde hoy, 30 días: hoy, +7, +14, +21 y +28 días
+        mockMvc.perform(get(URL + "/proximos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[0].fecha").value(LocalDate.now().toString()));
+    }
+
+    @Test
+    void proximosConDiasFueraDeRangoDevuelve400() throws Exception {
+        mockMvc.perform(get(URL + "/proximos").param("dias", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.dias").value("Los días deben estar entre 1 y 366"));
+
+        mockMvc.perform(get(URL + "/proximos").param("dias", "500"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void proximosConParametrosMalEscritosDevuelve400() throws Exception {
+        mockMvc.perform(get(URL + "/proximos").param("dias", "muchos"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.dias").value("El valor 'muchos' no es válido"));
+
+        mockMvc.perform(get(URL + "/proximos").param("desde", "10/11/2026"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.desde").exists());
+    }
+
     @Test
     void borrarIdQueNoExisteDevuelve404() throws Exception {
         mockMvc.perform(delete(URL + "/999999"))

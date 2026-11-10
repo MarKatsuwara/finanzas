@@ -1,6 +1,7 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,9 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 /** La "puerta" de la API para los pagos recurrentes. */
@@ -28,6 +31,19 @@ public class PagoRecurrenteController {
     @GetMapping
     public List<PagoRecurrenteResponse> listar() {
         return service.listar();
+    }
+
+    /**
+     * Próximos pagos. Ejemplos:
+     *   /api/pagos-recurrentes/proximos                        → desde hoy, 30 días
+     *   /api/pagos-recurrentes/proximos?dias=7                 → desde hoy, 7 días
+     *   /api/pagos-recurrentes/proximos?desde=2026-12-01&dias=31 → todo diciembre
+     */
+    @GetMapping("/proximos")
+    public List<ProximoPagoResponse> proximos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(defaultValue = "30") int dias) {
+        return service.proximos(desde != null ? desde : LocalDate.now(), dias);
     }
 
     @GetMapping("/{id}")

@@ -12,6 +12,10 @@ public interface PagoRecurrenteRepository extends JpaRepository<PagoRecurrente, 
     @EntityGraph(attributePaths = "categoria")
     List<PagoRecurrente> findAllByOrderByDescripcionAscIdAsc();
 
+    /** Solo los activos (los dados de baja no cuentan para los próximos pagos). */
+    @EntityGraph(attributePaths = "categoria")
+    List<PagoRecurrente> findByActivoTrue();
+
     /** ¿Hay algún pago recurrente que use esta categoría? */
     boolean existsByCategoriaId(Long categoriaId);
 }
