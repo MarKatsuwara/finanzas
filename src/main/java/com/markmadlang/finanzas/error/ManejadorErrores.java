@@ -2,6 +2,7 @@ package com.markmadlang.finanzas.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -41,6 +42,14 @@ public class ManejadorErrores {
     @ExceptionHandler(CampoNoValidoException.class)
     public ProblemDetail campoNoValido(CampoNoValidoException e) {
         return problemaDeDatos(Map.of(e.getCampo(), e.getMessage()));
+    }
+
+    /** JSON mal escrito o con un valor que no existe ("DIARIA", una fecha imposible...) → 400 Bad Request */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail jsonNoValido(HttpMessageNotReadableException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "No se ha podido leer la petición: revisa que el JSON esté bien escrito y que los valores existan "
+                        + "(tipo: INGRESO o GASTO; frecuencia: SEMANAL, MENSUAL o ANUAL; fechas: AAAA-MM-DD)");
     }
 
     private ProblemDetail problemaDeDatos(Map<String, String> errores) {

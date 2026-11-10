@@ -59,7 +59,7 @@ public class Movimiento {
     /** Cambia todos los datos de golpe (se usa al crear y al editar). */
     public void actualizar(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion, Categoria categoria) {
         this.tipo = tipo;
-        this.importe = importe;
+        this.importe = importe.setScale(2); // siempre con 2 decimales: 650 → 650.00
         this.fecha = fecha;
         this.descripcion = descripcion;
         this.categoria = categoria;

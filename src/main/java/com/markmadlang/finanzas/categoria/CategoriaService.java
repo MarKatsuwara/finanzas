@@ -1,7 +1,9 @@
 package com.markmadlang.finanzas.categoria;
 
+import com.markmadlang.finanzas.error.CampoNoValidoException;
 import com.markmadlang.finanzas.error.ConflictoException;
 import com.markmadlang.finanzas.movimiento.MovimientoRepository;
+import com.markmadlang.finanzas.pagorecurrente.PagoRecurrenteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +16,13 @@ public class CategoriaService {
 
     private final CategoriaRepository repository;
     private final MovimientoRepository movimientoRepository;
+    private final PagoRecurrenteRepository pagoRecurrenteRepository;
 
-    public CategoriaService(CategoriaRepository repository, MovimientoRepository movimientoRepository) {
+    public CategoriaService(CategoriaRepository repository, MovimientoRepository movimientoRepository,
+                            PagoRecurrenteRepository pagoRecurrenteRepository) {
         this.repository = repository;
         this.movimientoRepository = movimientoRepository;
+        this.pagoRecurrenteRepository = pagoRecurrenteRepository;
     }
 
     public List<CategoriaResponse> listar() {
@@ -58,7 +63,24 @@ public class CategoriaService {
             throw new ConflictoException("No se puede borrar la categoría " + categoria.getNombre()
                     + " porque hay movimientos que la usan");
         }
+        if (pagoRecurrenteRepository.existsByCategoriaId(id)) {
+            throw new ConflictoException("No se puede borrar la categoría " + categoria.getNombre()
+                    + " porque hay pagos recurrentes que la usan");
+        }
         repository.delete(categoria);
+    }
+
+    /**
+     * Para cuando un movimiento o un pago quiere ponerse una categoría.
+     * Sin categoría → null. Con una que no existe → error 400 en el campo "categoriaId".
+     */
+    public Categoria buscarParaAsignar(Long categoriaId) {
+        if (categoriaId == null) {
+            return null;
+        }
+        return repository.findById(categoriaId)
+                .orElseThrow(() -> new CampoNoValidoException("categoriaId",
+                        "No existe ninguna categoría con id " + categoriaId));
     }
 
     private Categoria buscar(Long id) {

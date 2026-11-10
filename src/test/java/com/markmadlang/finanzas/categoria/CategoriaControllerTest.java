@@ -3,6 +3,9 @@ package com.markmadlang.finanzas.categoria;
 import com.markmadlang.finanzas.movimiento.Movimiento;
 import com.markmadlang.finanzas.movimiento.MovimientoRepository;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
+import com.markmadlang.finanzas.pagorecurrente.Frecuencia;
+import com.markmadlang.finanzas.pagorecurrente.PagoRecurrente;
+import com.markmadlang.finanzas.pagorecurrente.PagoRecurrenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,9 @@ class CategoriaControllerTest {
 
     @Autowired
     private MovimientoRepository movimientoRepository;
+
+    @Autowired
+    private PagoRecurrenteRepository pagoRecurrenteRepository;
 
     @BeforeEach
     void limpiarMovimientos() {
@@ -157,6 +163,18 @@ class CategoriaControllerTest {
                         .value("No se puede borrar la categoría Comida porque hay movimientos que la usan"));
 
         assertThat(repository.existsById(comida.getId())).isTrue();
+    }
+
+    @Test
+    void borrarCategoriaUsadaPorUnPagoRecurrenteDevuelve409() throws Exception {
+        Categoria suscripciones = repository.findByNombreIgnoreCase("Suscripciones").orElseThrow();
+        pagoRecurrenteRepository.save(new PagoRecurrente("Netflix", TipoMovimiento.GASTO, new BigDecimal("12.99"),
+                Frecuencia.MENSUAL, LocalDate.of(2026, 1, 1), true, suscripciones));
+
+        mockMvc.perform(delete(URL + "/" + suscripciones.getId()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail")
+                        .value("No se puede borrar la categoría Suscripciones porque hay pagos recurrentes que la usan"));
     }
 
     @Test
