@@ -15,7 +15,7 @@ import java.util.List;
 public class PagoRecurrenteService {
 
     /** Como mucho se puede mirar un año (y un día, por los bisiestos) hacia delante. */
-    static final int MAX_DIAS = 366;
+    public static final int MAX_DIAS = 366;
 
     private final PagoRecurrenteRepository repository;
     private final CategoriaService categoriaService;

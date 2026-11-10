@@ -22,6 +22,9 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     @EntityGraph(attributePaths = "categoria")
     List<Movimiento> findAllByOrderByFechaDescIdDesc();
 
+    /** Los movimientos entre dos fechas (las dos incluidas), del más antiguo al más nuevo. */
+    List<Movimiento> findByFechaBetweenOrderByFechaAscIdAsc(LocalDate desde, LocalDate hasta);
+
     /** ¿Hay algún movimiento que use esta categoría? */
     boolean existsByCategoriaId(Long categoriaId);
 

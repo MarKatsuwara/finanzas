@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.prevision;
 
+import com.markmadlang.finanzas.RelojParado;
 import com.markmadlang.finanzas.movimiento.Movimiento;
 import com.markmadlang.finanzas.movimiento.MovimientoRepository;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
@@ -10,19 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -38,19 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Import(PrevisionControllerTest.RelojParado.class)
+@Import(RelojParado.class)
 class PrevisionControllerTest {
-
-    /** Sustituye el reloj real por uno parado en el 10 de noviembre de 2026. */
-    @TestConfiguration
-    static class RelojParado {
-        @Bean
-        @Primary // "usa este en vez del normal"
-        Clock relojParado() {
-            ZoneId madrid = ZoneId.of("Europe/Madrid");
-            return Clock.fixed(Instant.parse("2026-11-10T10:00:00Z"), madrid);
-        }
-    }
 
     private static final String URL = "/api/prevision";
 
