@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { SelectorTema } from './componentes/SelectorTema'
 import { Inicio } from './pantallas/Inicio'
+import { Movimientos } from './pantallas/Movimientos'
 
 // =========================================================
 // Las pantallas de la app. Para añadir una nueva, se añade aquí.
@@ -22,6 +23,19 @@ const PANTALLAS: Pantalla[] = [
       </svg>
     ),
     contenido: <Inicio />,
+  },
+  {
+    id: 'movimientos',
+    nombre: 'Movimientos',
+    icono: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <path d="M5.5 4h8M5.5 8h8M5.5 12h8" strokeLinecap="round" />
+        <circle cx="2.75" cy="4" r="0.75" fill="currentColor" stroke="none" />
+        <circle cx="2.75" cy="8" r="0.75" fill="currentColor" stroke="none" />
+        <circle cx="2.75" cy="12" r="0.75" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+    contenido: <Movimientos />,
   },
 ]
 

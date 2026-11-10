@@ -43,6 +43,15 @@
   --primary-hover: light-dark(#33363a, #d9dbde);
   --primary-text:  light-dark(#ffffff, #111214);
 
+  /* Colores pastel de las categorías: fondo pálido + texto oscuro del mismo color */
+  --tinte-1-bg: light-dark(#dcf1ff, #1b2a42);  --tinte-1-ink: light-dark(#0a3a80, #b9d3ff);  /* azul */
+  --tinte-2-bg: light-dark(#dcfae5, #17301f);  --tinte-2-ink: light-dark(#0b4d26, #8be0a9);  /* verde */
+  --tinte-3-bg: light-dark(#fff1d6, #3a2a10);  --tinte-3-ink: light-dark(#7a4a00, #f5c777);  /* ámbar */
+  --tinte-4-bg: light-dark(#d5f5f6, #12302f);  --tinte-4-ink: light-dark(#0b5258, #86dcd8);  /* turquesa */
+  --tinte-5-bg: light-dark(#ffe4e8, #3a1822);  --tinte-5-ink: light-dark(#8a1a3a, #f5a3b8);  /* rosa */
+  --tinte-6-bg: light-dark(#ffe8d9, #3a2216);  --tinte-6-ink: light-dark(#8a3b0a, #f5b48a);  /* naranja */
+  --tinte-neutro-bg: light-dark(#eef1f4, #26282c);  --tinte-neutro-ink: light-dark(#3a3d40, #c9ccd0);
+
   /* Formas y espacios */
   --radius-card: 20px;
   --radius-inner: 12px;
@@ -336,6 +345,76 @@ button, input, select { font: inherit; color: inherit; }
 .punto-pendiente { background: var(--accent); opacity: 0.35; }
 
 /* =========================================================
+   5c. PANTALLA DE MOVIMIENTOS
+   ========================================================= */
+.movimientos-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* ‹ noviembre de 2026 › */
+.selector-mes { display: flex; align-items: center; gap: 8px; }
+.selector-mes-nombre { min-width: 150px; text-align: center; font-weight: 500; }
+
+/* Entró / Salió */
+.totales-mes { display: flex; gap: 40px; padding-bottom: 16px; }
+.totales-mes div { display: flex; flex-direction: column; gap: 2px; }
+.total-cifra { font-size: var(--fs-section); font-weight: 600; }
+
+/* Los días y sus movimientos */
+.grupo-dia { padding-top: 8px; }
+.grupo-titulo { font-size: 13px; font-weight: 500; padding: 8px 0 4px; }
+.movimientos { list-style: none; margin: 0; padding: 0; }
+.movimiento {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 72px; /* qué | importe | borrar */
+  gap: 16px;
+  align-items: center;
+  min-height: 52px;
+  border-top: 1px solid var(--rule);
+}
+.movimiento-que { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.movimiento-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.movimiento-importe { text-align: right; font-weight: 600; }
+.movimiento-accion { text-align: right; font-size: var(--fs-small); }
+.confirmar { white-space: nowrap; }
+.vacio { padding: 16px 0; }
+
+/* La etiqueta de la categoría */
+.chip {
+  flex: none;
+  white-space: nowrap;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+.tinte-1 { background: var(--tinte-1-bg); color: var(--tinte-1-ink); }
+.tinte-2 { background: var(--tinte-2-bg); color: var(--tinte-2-ink); }
+.tinte-3 { background: var(--tinte-3-bg); color: var(--tinte-3-ink); }
+.tinte-4 { background: var(--tinte-4-bg); color: var(--tinte-4-ink); }
+.tinte-5 { background: var(--tinte-5-bg); color: var(--tinte-5-ink); }
+.tinte-6 { background: var(--tinte-6-bg); color: var(--tinte-6-ink); }
+.tinte-neutro { background: var(--tinte-neutro-bg); color: var(--tinte-neutro-ink); }
+
+/* Gastos por categoría: cada fila con su barrita */
+.ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.ranking-fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 500; }
+.ranking-barra { display: block; height: 4px; margin-top: 8px; border-radius: 999px; background: var(--accent); }
+.ranking-barra-ingreso { background: var(--positive); }
+.por-categoria { display: flex; flex-direction: column; gap: 28px; }
+.ranking-cabecera { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.ranking-cabecera h3 { font-size: var(--fs-body); font-weight: 600; }
+
+/* El formulario de apuntar, en una sola línea en pantallas grandes */
+.formulario-movimiento .campo-importe input { width: 120px; min-width: 0; }
+.formulario-movimiento .campo-crece { flex: 1 1 200px; }
+.formulario-movimiento .campo-crece input { width: 100%; }
+
+/* =========================================================
    6. BOTONES Y FORMULARIOS
    ========================================================= */
 .boton {
@@ -357,10 +436,37 @@ button, input, select { font: inherit; color: inherit; }
 .boton-texto { border: none; background: none; padding: 0; height: auto; color: var(--accent-ink); }
 .boton-texto:hover { background: none; text-decoration: underline; }
 
+.boton-icono { width: var(--control-height); padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+a.boton { display: inline-flex; align-items: center; text-decoration: none; }
+.boton-suave { color: var(--muted); font-weight: 500; }
+.boton-peligro { color: var(--negative); }
+
+/* Botones juntos donde solo uno está marcado (Gasto | Ingreso) */
+.segmentado {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--active);
+  border-radius: var(--radius-control);
+}
+.segmentado button {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+.segmentado button:hover { color: var(--text); }
+.segmentado button[aria-pressed="true"] { background: var(--surface); color: var(--text); }
+
 .formulario { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
 .campo { display: flex; flex-direction: column; gap: 6px; }
-.campo label { font-size: var(--fs-small); font-weight: 500; }
-.campo input {
+.campo label, .campo-titulo { font-size: var(--fs-small); font-weight: 500; }
+.campo input, .campo select {
   height: var(--control-height);
   padding: 0 12px;
   border: 1px solid var(--control);
@@ -428,7 +534,7 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Las dos tarjetas de abajo, una encima de otra (menos de 900 px) */
 @media (max-width: 900px) {
-  .inicio-fila { grid-template-columns: 1fr; }
+  .inicio-fila, .movimientos-fila { grid-template-columns: 1fr; }
 }
 
 /* Solo móvil (menos de 640 px) */
@@ -437,6 +543,18 @@ button, input, select { font: inherit; color: inherit; }
   .dia { grid-template-columns: 44px minmax(0, 1fr) 92px; gap: 12px; }
   .dia-movimientos li { grid-template-columns: minmax(0, 1fr) 88px; gap: 12px; font-size: var(--fs-small); }
   .fecha-chip { width: 44px; height: 44px; }
+  .titulo { flex-wrap: wrap; align-items: flex-start; }
+  .selector-mes { width: 100%; }
+  .selector-mes-nombre { min-width: 0; flex: 1; }
+  .formulario-movimiento .campo, .formulario-movimiento .boton-principal { flex: 1 1 100%; }
+  .formulario-movimiento .campo-importe input, .campo input, .campo select { width: 100%; min-width: 0; }
+  .movimiento { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; }
+  .movimiento-que { flex-wrap: wrap; gap: 6px; }
+  .movimiento-accion { grid-column: 1 / -1; text-align: left; }
+  /* Los botones Todos | Gastos | Ingresos (y Gasto | Ingreso) a todo el ancho, en su propia línea */
+  .tarjeta-cabecera { flex-wrap: wrap; }
+  .segmentado { display: flex; width: 100%; }
+  .segmentado button { flex: 1; }
   .contenido { padding: 16px 16px 48px; }
   .titulo h1 { font-size: 24px; }
   .tarjeta { padding: 20px; }

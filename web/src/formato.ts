@@ -69,3 +69,42 @@ export function diaYMes(iso: string): { dia: string; mes: string } {
 export function nombreMes(mesIso: string): string {
   return aFecha(`${mesIso}-01`).toLocaleDateString('es-ES', { month: 'long' })
 }
+
+/** El mes de hoy en formato "2026-11" */
+export function mesActual(): string {
+  return hoyIso().slice(0, 7)
+}
+
+/** Mueve un mes hacia delante o hacia atrás: moverMes("2026-11", -1) → "2026-10" */
+export function moverMes(mesIso: string, cuanto: number): string {
+  const [anio, mes] = mesIso.split('-').map(Number)
+  const fecha = new Date(anio, mes - 1 + cuanto, 1)
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** "2026-11" → "noviembre de 2026" */
+export function nombreMesYAnio(mesIso: string): string {
+  return aFecha(`${mesIso}-01`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+}
+
+/** El título de un día en una lista: "Hoy", "Ayer" o "Domingo, 8 nov" */
+export function tituloDia(iso: string): string {
+  const hoy = hoyIso()
+  const ayer = new Date()
+  ayer.setDate(ayer.getDate() - 1)
+  const ayerIso = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, '0')}-${String(ayer.getDate()).padStart(2, '0')}`
+
+  if (iso === hoy) return 'Hoy'
+  if (iso === ayerIso) return 'Ayer'
+  const texto = aFecha(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '')
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+/**
+ * Suma cantidades de dinero sin errores de decimales.
+ * (En JavaScript 0.1 + 0.2 da 0.30000000000000004: por eso sumamos en céntimos.)
+ */
+export function sumar(cantidades: number[]): number {
+  const centimos = cantidades.reduce((total, cantidad) => total + Math.round(cantidad * 100), 0)
+  return centimos / 100
+}

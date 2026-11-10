@@ -27,6 +27,8 @@ export function Inicio() {
           {/* La primera letra en mayúscula: "Martes, 10 de noviembre" */}
           <p>{hoy.charAt(0).toUpperCase() + hoy.slice(1)}</p>
         </div>
+        {/* Lo que más se hace en la app, a un clic */}
+        <a className="boton boton-principal" href="#movimientos">Apuntar movimiento</a>
       </div>
 
       <div className="inicio">

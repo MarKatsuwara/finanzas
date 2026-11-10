@@ -127,3 +127,35 @@ export interface PrevisionMes {
   mensaje: string
   pagosPendientes: ProximoPago[]
 }
+
+export interface Categoria {
+  id: number
+  nombre: string
+}
+
+/** Un ingreso o un gasto apuntado (de /api/movimientos). */
+export interface Movimiento {
+  id: number
+  tipo: 'INGRESO' | 'GASTO'
+  importe: number
+  fecha: string
+  descripcion: string
+  categoria: Categoria | null
+}
+
+/** Cuánto se ha ingresado o gastado en una categoría (categoriaId es null en "Sin categoría"). */
+export interface TotalCategoria {
+  categoriaId: number | null
+  categoria: string
+  total: number
+}
+
+/** El resumen de un mes (de /api/resumen?mes=2026-11). */
+export interface ResumenMes {
+  mes: string
+  totalIngresos: number
+  totalGastos: number
+  saldo: number
+  ingresosPorCategoria: TotalCategoria[]
+  gastosPorCategoria: TotalCategoria[]
+}
