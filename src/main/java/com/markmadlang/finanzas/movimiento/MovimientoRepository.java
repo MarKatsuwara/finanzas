@@ -2,7 +2,10 @@ package com.markmadlang.finanzas.movimiento;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -21,4 +24,21 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     /** ¿Hay algún movimiento que use esta categoría? */
     boolean existsByCategoriaId(Long categoriaId);
+
+    /**
+     * Suma los importes entre dos fechas, agrupando por tipo (INGRESO/GASTO) y por categoría.
+     * Es como este SQL:
+     *   SELECT m.tipo, c.id, c.nombre, SUM(m.importe)
+     *   FROM movimientos m LEFT JOIN categorias c ON c.id = m.categoria_id
+     *   WHERE m.fecha BETWEEN :desde AND :hasta
+     *   GROUP BY m.tipo, c.id, c.nombre
+     * Las sumas las hace la base de datos, que es muy rápida para eso.
+     */
+    @Query("""
+            SELECT new com.markmadlang.finanzas.movimiento.TotalPorCategoria(m.tipo, c.id, c.nombre, SUM(m.importe))
+            FROM Movimiento m LEFT JOIN m.categoria c
+            WHERE m.fecha BETWEEN :desde AND :hasta
+            GROUP BY m.tipo, c.id, c.nombre
+            """)
+    List<TotalPorCategoria> totalesPorCategoria(@Param("desde") LocalDate desde, @Param("hasta") LocalDate hasta);
 }
