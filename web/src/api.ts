@@ -18,12 +18,15 @@ export class ErrorApi extends Error {
 
 // ---------------------------------------------------------
 // Cuando la API está "dormida" (en el servidor gratis se duerme si nadie la usa),
-// tarda hasta un minuto en despertar. Mientras tanto responde 502/503/504 o no responde.
+// tarda unos 2 o 3 minutos en despertar (en Render tardó 155 s). Mientras tanto responde 502/503/504 o no responde.
 // En vez de enseñar un error, esperamos un poco y lo volvemos a intentar.
 // ---------------------------------------------------------
 
-/** Cuánto esperamos antes de cada reintento. En tu PC solo uno: si la API está apagada, mejor saberlo pronto. */
-const ESPERAS = import.meta.env.DEV ? [1000] : [3000, 5000, 8000, 12000, 15000]
+/**
+ * Cuánto esperamos antes de cada reintento. En tu PC solo uno: si la API está apagada, mejor saberlo pronto.
+ * En internet, en total unos 3 minutos (3+5+8+12+15+20×6 = 163 s, más lo que tarda cada intento).
+ */
+const ESPERAS = import.meta.env.DEV ? [1000] : [3000, 5000, 8000, 12000, 15000, 20000, 20000, 20000, 20000, 20000, 20000]
 
 const SIN_CONEXION = import.meta.env.DEV
   ? 'No se puede conectar con la API. ¿Está encendida en IntelliJ?'

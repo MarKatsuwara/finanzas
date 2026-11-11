@@ -15,9 +15,9 @@
 
 # El "camarero": todo lo que empieza por /api lo reenvía a la API de Render, igual que hace Vite en tu PC.
 # status = 200 significa "reenvíalo por detrás", así para el navegador todo está en la misma dirección.
-# (La dirección de Render la confirmaremos cuando la creemos.)
+# (Render añadió "-i01g" al nombre porque "finanzas-api" ya estaba cogido.)
 [[redirects]]
   from = "/api/*"
-  to = "https://finanzas-api.onrender.com/api/:splat"
+  to = "https://finanzas-api-i01g.onrender.com/api/:splat"
   status = 200
   force = true
