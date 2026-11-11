@@ -56,6 +56,11 @@ export function leerImporte(texto: string): number {
   return Number(texto.trim().replace(',', '.'))
 }
 
+/** Lo contrario: un importe escrito como lo teclearías tú (12.5 → "12,50"), para rellenar el formulario al editar. */
+export function importeParaEscribir(importe: number): string {
+  return importe.toFixed(2).replace('.', ',')
+}
+
 /** "2026-11-15" → { dia: "15", mes: "nov" } (para el cuadradito de la fecha) */
 export function diaYMes(iso: string): { dia: string; mes: string } {
   const fecha = aFecha(iso)

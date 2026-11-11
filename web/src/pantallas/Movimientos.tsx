@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Movimiento } from '../api'
 import { FormularioMovimiento } from '../componentes/FormularioMovimiento'
 import { GraficoMeses } from '../componentes/GraficoMeses'
 import { ListaMovimientos } from '../componentes/ListaMovimientos'
@@ -7,14 +8,15 @@ import { mesActual, moverMes, nombreMesYAnio } from '../formato'
 
 /**
  * La pantalla de movimientos:
- *  1. Apuntar (lo que más se hace, arriba del todo)
+ *  1. Apuntar (lo que más se hace, arriba del todo). Al pulsar "Editar" en la lista, se convierte en "Editar movimiento"
  *  2. El gráfico de los últimos 6 meses (al pulsar un mes, la lista salta a él)
  *  3. La lista del mes + en qué categorías se ha ido el dinero
  */
 export function Movimientos() {
   const [mes, setMes] = useState(mesActual())
   const [version, setVersion] = useState(0) // sube cada vez que se apunta o se borra algo
-  const actualizar = () => setVersion(version + 1)
+  const actualizar = () => setVersion((v) => v + 1)
+  const [editando, setEditando] = useState<Movimiento | null>(null) // el que se está modificando
 
   return (
     <>
@@ -41,12 +43,24 @@ export function Movimientos() {
       </div>
 
       <div className="inicio">
-        <FormularioMovimiento onApuntado={actualizar} />
+        {/* key: cada vez que cambias de movimiento, el formulario se crea de nuevo con sus datos */}
+        <FormularioMovimiento
+          key={editando?.id ?? 'nuevo'}
+          editando={editando}
+          onApuntado={actualizar}
+          onTerminarEdicion={() => setEditando(null)}
+        />
 
         <GraficoMeses mes={mes} version={version} onElegir={setMes} />
 
         <div className="movimientos-fila">
-          <ListaMovimientos mes={mes} version={version} onCambio={actualizar} />
+          <ListaMovimientos
+            mes={mes}
+            version={version}
+            onCambio={actualizar}
+            onEditar={setEditando}
+            editandoId={editando?.id ?? null}
+          />
           <TarjetaCategorias mes={mes} version={version} />
         </div>
       </div>

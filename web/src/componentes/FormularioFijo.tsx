@@ -1,21 +1,31 @@
 import { useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Frecuencia, type PagoRecurrente } from '../api'
-import { euros, hoyIso, leerImporte } from '../formato'
+import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { aproximarAlMes, FRECUENCIAS } from '../frecuencias'
 import { useDatos } from '../useDatos'
 
 type Tipo = 'GASTO' | 'INGRESO'
 
-/** El formulario para añadir un gasto o ingreso fijo. */
-export function FormularioFijo({ onAnadido }: { onAnadido: () => void }) {
+interface Props {
+  onAnadido: () => void                 // avisa de que se ha guardado algo (para recargar la lista)
+  editando?: PagoRecurrente | null      // si viene, el formulario sirve para MODIFICAR ese fijo
+  onTerminarEdicion?: () => void        // al guardar los cambios o pulsar Cancelar
+}
+
+/**
+ * El formulario para añadir un gasto o ingreso fijo.
+ * Si le pasas "editando", se rellena con ese fijo y al guardar lo MODIFICA (PUT).
+ * (GastosFijos.tsx le pone una "key" distinta para cada fijo, igual que en Movimientos.)
+ */
+export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }: Props) {
   const categorias = useDatos<Categoria[]>('/api/categorias')
 
-  const [tipo, setTipo] = useState<Tipo>('GASTO')
-  const [descripcion, setDescripcion] = useState('')
-  const [importe, setImporte] = useState('')
-  const [frecuencia, setFrecuencia] = useState<Frecuencia>('MENSUAL')
-  const [fechaInicio, setFechaInicio] = useState(hoyIso())
-  const [categoriaId, setCategoriaId] = useState('')
+  const [tipo, setTipo] = useState<Tipo>(editando?.tipo ?? 'GASTO')
+  const [descripcion, setDescripcion] = useState(editando?.descripcion ?? '')
+  const [importe, setImporte] = useState(editando ? importeParaEscribir(editando.importe) : '')
+  const [frecuencia, setFrecuencia] = useState<Frecuencia>(editando?.frecuencia ?? 'MENSUAL')
+  const [fechaInicio, setFechaInicio] = useState(editando?.fechaInicio ?? hoyIso())
+  const [categoriaId, setCategoriaId] = useState(editando?.categoria ? String(editando.categoria.id) : '')
 
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState<string | null>(null)
@@ -41,31 +51,46 @@ export function FormularioFijo({ onAnadido }: { onAnadido: () => void }) {
     setGuardando(true)
     setError(null)
     setHecho(null)
+    const datos = {
+      descripcion,
+      tipo,
+      importe: cantidad,
+      frecuencia,
+      fechaInicio,
+      categoriaId: categoriaId === '' ? null : Number(categoriaId),
+    }
     try {
-      const nuevo = await enviar<PagoRecurrente>('/api/pagos-recurrentes', 'POST', {
-        descripcion,
-        tipo,
-        importe: cantidad,
-        frecuencia,
-        fechaInicio,
-        categoriaId: categoriaId === '' ? null : Number(categoriaId),
-      })
+      if (editando) {
+        // Modificar: se envía todo, y "activo" se queda como estaba (eso se cambia con el interruptor)
+        await enviar<PagoRecurrente>(`/api/pagos-recurrentes/${editando.id}`, 'PUT', { ...datos, activo: editando.activo })
+        onAnadido()
+        onTerminarEdicion?.()
+        return
+      }
+      const nuevo = await enviar<PagoRecurrente>('/api/pagos-recurrentes', 'POST', datos)
       setHecho(`Añadido: ${nuevo.descripcion}`)
       setDescripcion('')
       setImporte('')
       setCategoriaId('')
       onAnadido()
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se ha podido añadir')
+      setError(e instanceof ErrorApi ? e.message : editando ? 'No se han podido guardar los cambios' : 'No se ha podido añadir')
     } finally {
       setGuardando(false)
     }
   }
 
+  let textoBoton = tipo === 'GASTO' ? 'Añadir gasto fijo' : 'Añadir ingreso fijo'
+  if (editando) textoBoton = 'Guardar cambios'
+  if (guardando) textoBoton = editando ? 'Guardando…' : 'Añadiendo…'
+
   return (
-    <section className="tarjeta" aria-labelledby="titulo-anadir-fijo">
+    <section className={editando ? 'tarjeta tarjeta-editando' : 'tarjeta'} aria-labelledby="titulo-anadir-fijo">
       <div className="tarjeta-cabecera">
-        <h2 id="titulo-anadir-fijo">Añadir fijo</h2>
+        <h2 id="titulo-anadir-fijo">{editando ? 'Editar fijo' : 'Añadir fijo'}</h2>
+        {editando && (
+          <button type="button" className="boton-texto" onClick={onTerminarEdicion}>Cancelar</button>
+        )}
       </div>
 
       <form className="formulario-vertical" onSubmit={anadir}>
@@ -82,6 +107,7 @@ export function FormularioFijo({ onAnadido }: { onAnadido: () => void }) {
             value={descripcion}
             maxLength={255}
             onChange={(e) => setDescripcion(e.target.value)}
+            autoFocus={editando !== null} // al pulsar Editar, el cursor salta aquí (y la página baja hasta el formulario)
           />
         </div>
 
@@ -133,7 +159,7 @@ export function FormularioFijo({ onAnadido }: { onAnadido: () => void }) {
         </div>
 
         <button className="boton boton-principal" type="submit" disabled={guardando}>
-          {guardando ? 'Añadiendo…' : tipo === 'GASTO' ? 'Añadir gasto fijo' : 'Añadir ingreso fijo'}
+          {textoBoton}
         </button>
 
         {error && <p className="campo-error" role="alert">{error}</p>}

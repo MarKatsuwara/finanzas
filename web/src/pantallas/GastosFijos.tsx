@@ -13,10 +13,15 @@ import { useDatos } from '../useDatos'
  */
 export function GastosFijos() {
   const [version, setVersion] = useState(0)
-  const actualizar = () => setVersion(version + 1)
+  const actualizar = () => setVersion((v) => v + 1)
+  const [editando, setEditando] = useState<PagoRecurrente | null>(null) // el que se está modificando
 
   // Se piden UNA vez y se pasan al resumen y a la lista, así siempre cuadran
   const { datos, error, cargando, recargar } = useDatos<PagoRecurrente[]>('/api/pagos-recurrentes', version)
+
+  // Al formulario le pasamos SIEMPRE la versión más reciente del que editas: si mientras tanto
+  // le cambias el interruptor, al guardar no se pierde (y si ya no existe, el formulario vuelve a "Añadir").
+  const editandoActual = editando ? (datos?.find((f) => f.id === editando.id) ?? null) : null
 
   return (
     <>
@@ -42,8 +47,18 @@ export function GastosFijos() {
         {datos && <ResumenFijos fijos={datos} />}
 
         <div className="movimientos-fila">
-          {datos ? <ListaFijos fijos={datos} onCambio={actualizar} /> : <div />}
-          <FormularioFijo onAnadido={actualizar} />
+          {datos ? (
+            <ListaFijos fijos={datos} onCambio={actualizar} onEditar={setEditando} editandoId={editandoActual?.id ?? null} />
+          ) : (
+            <div />
+          )}
+          {/* key: cada vez que cambias de fijo, el formulario se crea de nuevo con sus datos */}
+          <FormularioFijo
+            key={editandoActual?.id ?? 'nuevo'}
+            editando={editandoActual}
+            onAnadido={actualizar}
+            onTerminarEdicion={() => setEditando(null)}
+          />
         </div>
       </div>
     </>

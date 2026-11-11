@@ -8,13 +8,15 @@ import { ErrorCarga } from './ErrorCarga'
 type Filtro = 'TODOS' | 'GASTO' | 'INGRESO'
 
 interface Props {
-  mes: string            // "2026-11": solo se enseñan los de este mes
-  version: number        // cuando cambia, se vuelve a pedir la lista
-  onCambio: () => void   // avisa de que se ha borrado algo
+  mes: string                          // "2026-11": solo se enseñan los de este mes
+  version: number                      // cuando cambia, se vuelve a pedir la lista
+  onCambio: () => void                 // avisa de que se ha borrado algo
+  onEditar: (m: Movimiento) => void    // al pulsar "Editar" en una fila
+  editandoId: number | null            // el que se está editando ahora (se marca y no se puede borrar)
 }
 
-/** La lista de movimientos de un mes, agrupados por día, con filtro y botón de borrar. */
-export function ListaMovimientos({ mes, version, onCambio }: Props) {
+/** La lista de movimientos de un mes, agrupados por día, con filtro y botones de editar y borrar. */
+export function ListaMovimientos({ mes, version, onCambio, onEditar, editandoId }: Props) {
   const { datos, error, cargando, recargar } = useDatos<Movimiento[]>('/api/movimientos', version)
   const [filtro, setFiltro] = useState<Filtro>('TODOS')
   const [confirmando, setConfirmando] = useState<number | null>(null) // id del que preguntamos "¿Borrar?"
@@ -90,7 +92,7 @@ export function ListaMovimientos({ mes, version, onCambio }: Props) {
               <h3 className="grupo-titulo etiqueta">{tituloDia(fecha)}</h3>
               <ul className="movimientos">
                 {movimientos.map((m) => (
-                  <li key={m.id} className="movimiento">
+                  <li key={m.id} className={m.id === editandoId ? 'movimiento movimiento-editando' : 'movimiento'}>
                     <div className="movimiento-que">
                       <span className="movimiento-nombre">{m.descripcion}</span>
                       <ChipCategoria id={m.categoria?.id ?? null} nombre={m.categoria?.nombre ?? 'Sin categoría'} />
@@ -102,7 +104,9 @@ export function ListaMovimientos({ mes, version, onCambio }: Props) {
                     </span>
 
                     <div className="movimiento-accion">
-                      {confirmando === m.id ? (
+                      {m.id === editandoId ? (
+                        <span className="etiqueta">Editando…</span>
+                      ) : confirmando === m.id ? (
                         <span className="confirmar">
                           ¿Borrar?{' '}
                           <button className="boton-texto boton-peligro" onClick={() => borrar(m)}>Sí</button>
@@ -110,13 +114,23 @@ export function ListaMovimientos({ mes, version, onCambio }: Props) {
                           <button className="boton-texto" onClick={() => setConfirmando(null)}>No</button>
                         </span>
                       ) : (
-                        <button
-                          className="boton-texto boton-suave"
-                          onClick={() => setConfirmando(m.id)}
-                          aria-label={`Borrar ${m.descripcion}`}
-                        >
-                          Borrar
-                        </button>
+                        <span className="confirmar">
+                          <button
+                            className="boton-texto boton-suave"
+                            onClick={() => onEditar(m)}
+                            aria-label={`Editar ${m.descripcion}`}
+                          >
+                            Editar
+                          </button>
+                          {' · '}
+                          <button
+                            className="boton-texto boton-suave"
+                            onClick={() => setConfirmando(m.id)}
+                            aria-label={`Borrar ${m.descripcion}`}
+                          >
+                            Borrar
+                          </button>
+                        </span>
                       )}
                     </div>
                   </li>

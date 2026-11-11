@@ -323,6 +323,15 @@ button, input, select { font: inherit; color: inherit; }
   margin-bottom: 16px;
 }
 .tarjeta-cabecera h2 { font-size: var(--fs-section); font-weight: 500; }
+/* El formulario cuando estás modificando algo: borde azul para que se note que no es "apuntar nuevo" */
+.tarjeta-editando { border-color: var(--accent); outline: 1px solid var(--accent); }
+/* La fila que se está editando, marcada con un fondo azul suave (el margen negativo es para que el texto no toque el borde) */
+.movimiento.movimiento-editando, .fijo.fijo-editando { /* doble clase: gana a la regla del móvil que quita el relleno */
+  background: var(--accent-soft);
+  border-radius: var(--radius-inner);
+  padding-inline: 10px;
+  margin-inline: -10px;
+}
 
 /* Cantidades de dinero */
 .dinero { font-weight: 600; white-space: nowrap; }
@@ -476,7 +485,7 @@ button, input, select { font: inherit; color: inherit; }
 .movimientos { list-style: none; margin: 0; padding: 0; }
 .movimiento {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px 72px; /* qué | importe | borrar */
+  grid-template-columns: minmax(0, 1fr) 120px 120px; /* qué | importe | editar · borrar */
   gap: 16px;
   align-items: center;
   min-height: 52px;

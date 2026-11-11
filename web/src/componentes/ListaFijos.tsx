@@ -9,11 +9,13 @@ type Filtro = 'TODOS' | 'GASTO' | 'INGRESO'
 
 interface Props {
   fijos: PagoRecurrente[]
-  onCambio: () => void // avisa de que algo ha cambiado (activar, desactivar, borrar)
+  onCambio: () => void                     // avisa de que algo ha cambiado (activar, desactivar, borrar)
+  onEditar: (f: PagoRecurrente) => void    // al pulsar "Editar" en una fila
+  editandoId: number | null                // el que se está editando ahora (se marca y no se puede borrar)
 }
 
-/** La lista de gastos e ingresos fijos, con su interruptor y su botón de borrar. */
-export function ListaFijos({ fijos, onCambio }: Props) {
+/** La lista de gastos e ingresos fijos, con su interruptor y sus botones de editar y borrar. */
+export function ListaFijos({ fijos, onCambio, onEditar, editandoId }: Props) {
   const [filtro, setFiltro] = useState<Filtro>('TODOS')
   const [confirmando, setConfirmando] = useState<number | null>(null)
   const [guardando, setGuardando] = useState<number | null>(null)
@@ -80,7 +82,7 @@ export function ListaFijos({ fijos, onCambio }: Props) {
 
       <ul className="fijos">
         {visibles.map((f) => (
-          <li key={f.id} className={f.activo ? 'fijo' : 'fijo fijo-apagado'}>
+          <li key={f.id} className={`fijo${f.activo ? '' : ' fijo-apagado'}${f.id === editandoId ? ' fijo-editando' : ''}`}>
             <div className="fijo-texto">
               {/* Línea 1: "Alquiler · 650,00 €" + su categoría */}
               <p className="fijo-linea">
@@ -108,7 +110,9 @@ export function ListaFijos({ fijos, onCambio }: Props) {
                 etiqueta={`${f.descripcion} activo`}
                 desactivado={guardando === f.id}
               />
-              {confirmando === f.id ? (
+              {f.id === editandoId ? (
+                <span className="etiqueta">Editando…</span>
+              ) : confirmando === f.id ? (
                 <span className="confirmar">
                   ¿Borrar?{' '}
                   <button className="boton-texto boton-peligro" onClick={() => borrar(f)}>Sí</button>
@@ -116,9 +120,15 @@ export function ListaFijos({ fijos, onCambio }: Props) {
                   <button className="boton-texto" onClick={() => setConfirmando(null)}>No</button>
                 </span>
               ) : (
-                <button className="boton-texto boton-suave" onClick={() => setConfirmando(f.id)} aria-label={`Borrar ${f.descripcion}`}>
-                  Borrar
-                </button>
+                <span className="confirmar">
+                  <button className="boton-texto boton-suave" onClick={() => onEditar(f)} aria-label={`Editar ${f.descripcion}`}>
+                    Editar
+                  </button>
+                  {' · '}
+                  <button className="boton-texto boton-suave" onClick={() => setConfirmando(f.id)} aria-label={`Borrar ${f.descripcion}`}>
+                    Borrar
+                  </button>
+                </span>
               )}
             </div>
           </li>

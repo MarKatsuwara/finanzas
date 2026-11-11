@@ -1,19 +1,30 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Movimiento } from '../api'
-import { euros, hoyIso, leerImporte } from '../formato'
+import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { useDatos } from '../useDatos'
 
 type Tipo = 'GASTO' | 'INGRESO'
 
-/** El formulario para apuntar un gasto o un ingreso. Está pensado para apuntar varios seguidos, rápido. */
-export function FormularioMovimiento({ onApuntado }: { onApuntado: () => void }) {
+interface Props {
+  onApuntado: () => void              // avisa de que se ha guardado algo (para recargar la lista)
+  editando?: Movimiento | null        // si viene, el formulario sirve para MODIFICAR ese movimiento
+  onTerminarEdicion?: () => void      // al guardar los cambios o pulsar Cancelar
+}
+
+/**
+ * El formulario para apuntar un gasto o un ingreso. Está pensado para apuntar varios seguidos, rápido.
+ * Si le pasas "editando", se rellena con ese movimiento y al guardar lo MODIFICA (PUT) en vez de crear otro.
+ * (Movimientos.tsx le pone una "key" distinta para cada movimiento, así React lo crea de nuevo
+ * y los useState de abajo arrancan con los datos del que editas.)
+ */
+export function FormularioMovimiento({ onApuntado, editando = null, onTerminarEdicion }: Props) {
   const categorias = useDatos<Categoria[]>('/api/categorias')
 
-  const [tipo, setTipo] = useState<Tipo>('GASTO')
-  const [importe, setImporte] = useState('')
-  const [descripcion, setDescripcion] = useState('')
-  const [categoriaId, setCategoriaId] = useState('') // '' = sin categoría
-  const [fecha, setFecha] = useState(hoyIso())
+  const [tipo, setTipo] = useState<Tipo>(editando?.tipo ?? 'GASTO')
+  const [importe, setImporte] = useState(editando ? importeParaEscribir(editando.importe) : '')
+  const [descripcion, setDescripcion] = useState(editando?.descripcion ?? '')
+  const [categoriaId, setCategoriaId] = useState(editando?.categoria ? String(editando.categoria.id) : '') // '' = sin categoría
+  const [fecha, setFecha] = useState(editando?.fecha ?? hoyIso())
 
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState<string | null>(null) // "Apuntado: Café −2,50 €"
@@ -33,14 +44,22 @@ export function FormularioMovimiento({ onApuntado }: { onApuntado: () => void })
     setGuardando(true)
     setError(null)
     setHecho(null)
+    const datos = {
+      tipo,
+      importe: cantidad,
+      fecha,
+      descripcion,
+      categoriaId: categoriaId === '' ? null : Number(categoriaId),
+    }
     try {
-      const nuevo = await enviar<Movimiento>('/api/movimientos', 'POST', {
-        tipo,
-        importe: cantidad,
-        fecha,
-        descripcion,
-        categoriaId: categoriaId === '' ? null : Number(categoriaId),
-      })
+      if (editando) {
+        // Modificar: PUT a /api/movimientos/7 con todos los datos (también los que no has cambiado)
+        await enviar<Movimiento>(`/api/movimientos/${editando.id}`, 'PUT', datos)
+        onApuntado()
+        onTerminarEdicion?.() // vuelve a ser el formulario de apuntar
+        return
+      }
+      const nuevo = await enviar<Movimiento>('/api/movimientos', 'POST', datos)
       setHecho(`Apuntado: ${nuevo.descripcion} ${nuevo.tipo === 'INGRESO' ? '+' : '−'}${euros(nuevo.importe)}`)
       // Dejamos el formulario listo para el siguiente (la fecha y el tipo se quedan)
       setImporte('')
@@ -49,17 +68,24 @@ export function FormularioMovimiento({ onApuntado }: { onApuntado: () => void })
       campoImporte.current?.focus()
       onApuntado()
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se ha podido apuntar')
+      setError(e instanceof ErrorApi ? e.message : editando ? 'No se han podido guardar los cambios' : 'No se ha podido apuntar')
     } finally {
       setGuardando(false)
     }
   }
 
+  let textoBoton = tipo === 'GASTO' ? 'Apuntar gasto' : 'Apuntar ingreso'
+  if (editando) textoBoton = 'Guardar cambios'
+  if (guardando) textoBoton = editando ? 'Guardando…' : 'Apuntando…'
+
   return (
-    <section className="tarjeta" aria-labelledby="titulo-apuntar">
+    <section className={editando ? 'tarjeta tarjeta-editando' : 'tarjeta'} aria-labelledby="titulo-apuntar">
       <div className="tarjeta-cabecera">
-        <h2 id="titulo-apuntar">Apuntar</h2>
-        {hecho && <span className="etiqueta" role="status">{hecho}</span>}
+        <h2 id="titulo-apuntar">{editando ? 'Editar movimiento' : 'Apuntar'}</h2>
+        {hecho && !editando && <span className="etiqueta" role="status">{hecho}</span>}
+        {editando && (
+          <button type="button" className="boton-texto" onClick={onTerminarEdicion}>Cancelar</button>
+        )}
       </div>
 
       <form className="formulario formulario-movimiento" onSubmit={apuntar}>
@@ -112,7 +138,7 @@ export function FormularioMovimiento({ onApuntado }: { onApuntado: () => void })
         </div>
 
         <button className="boton boton-principal" type="submit" disabled={guardando}>
-          {guardando ? 'Apuntando…' : tipo === 'GASTO' ? 'Apuntar gasto' : 'Apuntar ingreso'}
+          {textoBoton}
         </button>
 
         {error && <p className="campo-error" role="alert">{error}</p>}
