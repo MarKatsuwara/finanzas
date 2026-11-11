@@ -6,6 +6,10 @@ App web para controlar tu dinero: lo que entra, lo que sale y los pagos que se r
 
 > La API está en el plan gratis de Render, que la apaga tras 15 minutos sin uso. Si nadie la ha usado en un rato, la primera vez tarda 2 o 3 minutos en arrancar; la web lo avisa y reintenta sola.
 
+![Pantalla de inicio: saldo de hoy, gráfico de cómo irá el saldo en los próximos 30 días, próximos pagos y resumen del mes](docs/capturas/inicio.png)
+
+<sub>Las capturas usan datos inventados.</sub>
+
 ## Qué hace
 
 - **Saldo de hoy y previsión día a día.** Le dices cuánto tienes en el banco y calcula cuánto te quedará cada día de los próximos 30, contando los pagos fijos. Si algún día bajas de 0, te avisa en rojo y te dice cuál.
@@ -14,6 +18,20 @@ App web para controlar tu dinero: lo que entra, lo que sale y los pagos que se r
 - **Resumen del mes.** Lo que ha entrado y salido, por categoría, con gráficos de los últimos meses.
 - **Cuentas de usuario.** Login con Google, sin contraseñas. Cada usuario ve solo sus datos y puede borrar su cuenta con todo lo que tenga.
 - **Tema claro y oscuro**, y se usa bien en el móvil.
+
+## Capturas
+
+**Movimientos:** apuntar, gráfico de los últimos 6 meses, lista del mes y gasto por categoría.
+
+![Pantalla de movimientos](docs/capturas/movimientos.png)
+
+**Gastos fijos:** cuánto suponen al mes, la lista con su próxima fecha y el formulario para añadir.
+
+![Pantalla de gastos fijos](docs/capturas/fijos.png)
+
+**En el móvil, con el tema oscuro:**
+
+<img src="docs/capturas/movil-oscuro.png" alt="Pantalla de inicio en el móvil con el tema oscuro" width="300">
 
 ## Cómo está hecha
 
