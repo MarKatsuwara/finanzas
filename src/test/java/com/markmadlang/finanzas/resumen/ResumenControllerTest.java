@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.resumen;
 
+import com.markmadlang.finanzas.SesionDePrueba;
 import com.markmadlang.finanzas.categoria.Categoria;
 import com.markmadlang.finanzas.categoria.CategoriaRepository;
 import com.markmadlang.finanzas.movimiento.Movimiento;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** Tests del resumen mensual. @Transactional deshace los cambios al acabar cada test. */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(SesionDePrueba.class) // las peticiones llevan pulsera, como si hubieras iniciado sesión
 @Transactional
 class ResumenControllerTest {
 

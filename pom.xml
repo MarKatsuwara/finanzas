@@ -64,9 +64,22 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Seguridad: cierra la API y comprueba las "pulseras" (tokens JWT) de cada petición -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Para los tests: permite hacer peticiones "con pulsera" sin pasar por Google -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 

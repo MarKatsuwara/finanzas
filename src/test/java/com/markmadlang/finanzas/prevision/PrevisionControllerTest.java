@@ -1,6 +1,7 @@
 package com.markmadlang.finanzas.prevision;
 
 import com.markmadlang.finanzas.RelojParado;
+import com.markmadlang.finanzas.SesionDePrueba;
 import com.markmadlang.finanzas.movimiento.Movimiento;
 import com.markmadlang.finanzas.movimiento.MovimientoRepository;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Import(RelojParado.class)
+@Import({RelojParado.class, SesionDePrueba.class})
 class PrevisionControllerTest {
 
     private static final String URL = "/api/prevision";

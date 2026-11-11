@@ -1,6 +1,7 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
 import com.markmadlang.finanzas.RelojParado;
+import com.markmadlang.finanzas.SesionDePrueba;
 import com.markmadlang.finanzas.categoria.CategoriaRepository;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Import(RelojParado.class) // para la app, "hoy" es el 10/11/2026
+@Import({RelojParado.class, SesionDePrueba.class}) // para la app, "hoy" es el 10/11/2026
 class PagoRecurrenteControllerTest {
 
     private static final String URL = "/api/pagos-recurrentes";

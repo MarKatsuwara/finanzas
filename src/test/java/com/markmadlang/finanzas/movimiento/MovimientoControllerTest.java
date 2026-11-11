@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.SesionDePrueba;
 import com.markmadlang.finanzas.categoria.Categoria;
 import com.markmadlang.finanzas.categoria.CategoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(SesionDePrueba.class) // las peticiones llevan pulsera, como si hubieras iniciado sesión
 class MovimientoControllerTest {
 
     private static final String URL = "/api/movimientos";

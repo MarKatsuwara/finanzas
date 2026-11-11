@@ -1,5 +1,7 @@
 package com.markmadlang.finanzas.error;
 
+import com.markmadlang.finanzas.seguridad.CredencialNoValidaException;
+import com.markmadlang.finanzas.seguridad.GoogleSinConfigurarException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -22,6 +24,18 @@ public class ManejadorErrores {
     @ExceptionHandler(NoEncontradoException.class)
     public ProblemDetail noEncontrado(NoEncontradoException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    /** El carné de Google no es válido → 401 Unauthorized */
+    @ExceptionHandler(CredencialNoValidaException.class)
+    public ProblemDetail credencialNoValida(CredencialNoValidaException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    /** Falta configurar Google en el servidor → 500, pero explicando qué pasa */
+    @ExceptionHandler(GoogleSinConfigurarException.class)
+    public ProblemDetail googleSinConfigurar(GoogleSinConfigurarException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     /** Choca con lo que ya hay guardado → 409 Conflict */

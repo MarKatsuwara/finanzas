@@ -9,3 +9,9 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
+finanzas:
+  jwt:
+    secreto: "clave-solo-para-los-tests-no-sirve-en-produccion"
+  google:
+    id-cliente: "id-cliente-de-prueba"

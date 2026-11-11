@@ -9,3 +9,11 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
+finanzas:
+  jwt:
+    # La clave secreta para firmar las sesiones. Va en una variable de entorno, NUNCA aquí.
+    secreto: ${JWT_SECRET:}
+  google:
+    # El ID de cliente de Google (no es secreto: también va en la web).
+    id-cliente: ${GOOGLE_CLIENT_ID:381598543863-u49204encja2rjs5l7lk9gb4t01jg5ug.apps.googleusercontent.com}
