@@ -16,29 +16,92 @@ export class ErrorApi extends Error {
   }
 }
 
+// ---------------------------------------------------------
+// Cuando la API está "dormida" (en el servidor gratis se duerme si nadie la usa),
+// tarda hasta un minuto en despertar. Mientras tanto responde 502/503/504 o no responde.
+// En vez de enseñar un error, esperamos un poco y lo volvemos a intentar.
+// ---------------------------------------------------------
+
+/** Cuánto esperamos antes de cada reintento. En tu PC solo uno: si la API está apagada, mejor saberlo pronto. */
+const ESPERAS = import.meta.env.DEV ? [1000] : [3000, 5000, 8000, 12000, 15000]
+
+const SIN_CONEXION = import.meta.env.DEV
+  ? 'No se puede conectar con la API. ¿Está encendida en IntelliJ?'
+  : 'No se puede conectar con el servidor. Vuelve a intentarlo en un momento.'
+
+// Aviso para la pantalla: "el servidor se está despertando…" (lo enseña AvisoDespertando)
+let despertando = 0 // cuántas peticiones están esperando ahora mismo
+const oyentesDespertando = new Set<() => void>()
+
+export function servidorDespertando(): boolean {
+  return despertando > 0
+}
+
+export function alCambiarDespertando(oyente: () => void): () => void {
+  oyentesDespertando.add(oyente)
+  return () => {
+    oyentesDespertando.delete(oyente)
+  }
+}
+
+function cambiarDespertando(cuanto: number) {
+  despertando += cuanto
+  oyentesDespertando.forEach((oyente) => oyente())
+}
+
+const esperar = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms))
+
+/**
+ * ¿Se puede repetir esta petición sin miedo? Pedir (GET), cambiar (PUT) y borrar (DELETE) sí:
+ * hacerlas dos veces da lo mismo. Crear (POST) no, porque podríamos apuntar algo dos veces.
+ * (Entrar con Google sí: entrar dos veces no hace daño.)
+ */
+function sePuedeRepetir(ruta: string, metodo: string): boolean {
+  return metodo !== 'POST' || ruta === RUTA_ENTRAR
+}
+
+/** Una sola llamada a la API. Devuelve null si el servidor no está (para reintentar). */
+async function llamar(ruta: string, opciones: RequestInit): Promise<Response | null> {
+  try {
+    const respuesta = await fetch(ruta, opciones)
+    // 502/503/504: el "camarero" (Vite en tu PC, Netlify en internet) no ha podido hablar con la API
+    return [502, 503, 504].includes(respuesta.status) ? null : respuesta
+  } catch {
+    return null // fetch solo falla así cuando no hay nadie al otro lado
+  }
+}
+
 /**
  * Hace una petición a la API y devuelve la respuesta ya convertida desde JSON.
  * Si la API responde con error, lanza un ErrorApi con el mensaje que escribimos en Java.
  */
-async function peticion<T>(ruta: string, opciones?: RequestInit): Promise<T> {
+async function peticion<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
   // Si has entrado, cada petición lleva tu pulsera: "Authorization: Bearer <token>"
-  const cabeceras = new Headers(opciones?.headers)
+  const cabeceras = new Headers(opciones.headers)
   const sesion = sesionActual()
   if (sesion) {
     cabeceras.set('Authorization', `Bearer ${sesion.token}`)
   }
+  const metodo = opciones.method ?? 'GET'
 
-  let respuesta: Response
-  try {
-    respuesta = await fetch(ruta, { ...opciones, headers: cabeceras })
-  } catch {
-    // fetch solo falla así cuando no hay nadie al otro lado
-    throw new ErrorApi(0, 'No se puede conectar con la API. ¿Está encendida en IntelliJ?')
+  let respuesta = await llamar(ruta, { ...opciones, headers: cabeceras })
+
+  // Si no contesta, esperamos y reintentamos (solo si se puede repetir sin peligro)
+  if (!respuesta && sePuedeRepetir(ruta, metodo)) {
+    cambiarDespertando(1)
+    try {
+      for (const espera of ESPERAS) {
+        await esperar(espera)
+        respuesta = await llamar(ruta, { ...opciones, headers: cabeceras })
+        if (respuesta) break
+      }
+    } finally {
+      cambiarDespertando(-1)
+    }
   }
 
-  // La web y la API funcionan juntas, pero si la API está apagada el proxy de Vite responde 502/504
-  if (respuesta.status === 502 || respuesta.status === 504) {
-    throw new ErrorApi(0, 'No se puede conectar con la API. ¿Está encendida en IntelliJ?')
+  if (!respuesta) {
+    throw new ErrorApi(0, SIN_CONEXION)
   }
 
   // 401 = la pulsera no vale (ha caducado). Cerramos la sesión y la app vuelve a la pantalla de entrar.
@@ -69,6 +132,12 @@ export function pedir<T>(ruta: string): Promise<T> {
 /** Entra con el carné de Google: la API lo comprueba y nos da la pulsera, que guardamos. */
 export async function entrarConGoogle(credencial: string): Promise<void> {
   guardarSesion(await enviar<Sesion>(RUTA_ENTRAR, 'POST', { credencial }))
+}
+
+/** Borra tu cuenta y todo lo que has apuntado. Después, la sesión se cierra. */
+export async function borrarMiCuenta(): Promise<void> {
+  await enviar<void>('/api/auth/yo', 'DELETE')
+  cerrarSesion()
 }
 
 /** POST, PUT o DELETE: enviar datos. */

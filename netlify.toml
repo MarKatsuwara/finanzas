@@ -1,0 +1,23 @@
+# =========================================================
+# Instrucciones para Netlify (donde se publica la web).
+# =========================================================
+
+[build]
+  # La web está en la carpeta "web" del repositorio
+  base = "web"
+  # Cómo se construye (lo mismo que haces tú con npm.cmd run build)
+  command = "npm run build"
+  # Dónde queda la web ya construida (dentro de "web")
+  publish = "dist"
+  # Solo vuelve a publicar si ha cambiado algo de la web. Si solo tocas Java, Netlify no hace nada
+  # (cada publicación gasta créditos del plan gratis). "git diff --quiet" = "¿no ha cambiado nada?"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+# El "camarero": todo lo que empieza por /api lo reenvía a la API de Render, igual que hace Vite en tu PC.
+# status = 200 significa "reenvíalo por detrás", así para el navegador todo está en la misma dirección.
+# (La dirección de Render la confirmaremos cuando la creemos.)
+[[redirects]]
+  from = "/api/*"
+  to = "https://finanzas-api.onrender.com/api/:splat"
+  status = 200
+  force = true

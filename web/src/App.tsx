@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { AvisoDespertando } from './componentes/AvisoDespertando'
 import { CuentaUsuario } from './componentes/CuentaUsuario'
 import { SelectorTema } from './componentes/SelectorTema'
 import { Entrar } from './pantallas/Entrar'
 import { GastosFijos } from './pantallas/GastosFijos'
 import { Inicio } from './pantallas/Inicio'
 import { Movimientos } from './pantallas/Movimientos'
+import { Privacidad } from './pantallas/Privacidad'
 import { alCambiarLaSesion, sesionActual } from './sesion'
 
 // =========================================================
@@ -54,6 +56,11 @@ const PANTALLAS: Pantalla[] = [
   },
 ]
 
+/** La página de privacidad no está en el menú, pero se puede abrir con o sin sesión (#privacidad). */
+function esPrivacidad(): boolean {
+  return window.location.hash === '#privacidad'
+}
+
 /** Lee qué pantalla toca según la dirección (#inicio, #movimientos...). */
 function pantallaDeLaDireccion(): Pantalla {
   const id = window.location.hash.replace('#', '')
@@ -62,6 +69,7 @@ function pantallaDeLaDireccion(): Pantalla {
 
 export default function App() {
   const [actual, setActual] = useState(pantallaDeLaDireccion)
+  const [enPrivacidad, setEnPrivacidad] = useState(esPrivacidad)
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [sesion, setSesion] = useState(sesionActual) // null = no has entrado
 
@@ -72,19 +80,33 @@ export default function App() {
   useEffect(() => {
     function alCambiar() {
       setActual(pantallaDeLaDireccion())
+      setEnPrivacidad(esPrivacidad())
       setMenuAbierto(false)
     }
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
   }, [])
 
-  // Sin sesión, solo se ve la pantalla de entrar
+  // Sin sesión, solo se ve la pantalla de entrar (o la de privacidad, que se puede leer antes de entrar)
   if (!sesion) {
-    return <Entrar />
+    return (
+      <>
+        <AvisoDespertando />
+        {enPrivacidad ? (
+          <main className="contenido contenido-suelto">
+            <a className="boton-texto volver" href="#">← Volver</a>
+            <Privacidad conSesion={false} />
+          </main>
+        ) : (
+          <Entrar />
+        )}
+      </>
+    )
   }
 
   return (
     <div className="app">
+      <AvisoDespertando />
       <header className={menuAbierto ? 'menu abierto' : 'menu'}>
         <div className="marca">
           {/* El símbolo de la app: una pila de monedas */}
@@ -116,7 +138,7 @@ export default function App() {
                 key={p.id}
                 href={`#${p.id}`}
                 className="menu-item"
-                aria-current={p.id === actual.id ? 'page' : undefined}
+                aria-current={p.id === actual.id && !enPrivacidad ? 'page' : undefined}
               >
                 {p.icono}
                 {p.nombre}
@@ -129,7 +151,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="contenido">{actual.contenido}</main>
+      <main className="contenido">{enPrivacidad ? <Privacidad conSesion /> : actual.contenido}</main>
     </div>
   )
 }

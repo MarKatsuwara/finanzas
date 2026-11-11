@@ -95,7 +95,8 @@ export function Entrar() {
         )}
 
         <p className="etiqueta entrar-nota">
-          Solo usamos tu nombre, tu email y tu foto de Google. No guardamos ninguna contraseña.
+          Solo usamos tu nombre, tu email y tu foto de Google. No guardamos ninguna contraseña.{' '}
+          <a href="#privacidad">Más sobre tu privacidad</a>
         </p>
       </section>
     </main>

@@ -32,6 +32,7 @@ export function CuentaUsuario({ usuario }: { usuario: Usuario }) {
           <span className="cuenta-email">{usuario.email}</span>
         </div>
       </div>
+      <a className="cuenta-enlace" href="#privacidad">Privacidad y cuenta</a>
       <button type="button" className="boton boton-suave cuenta-salir" onClick={salir}>
         Cerrar sesión
       </button>
