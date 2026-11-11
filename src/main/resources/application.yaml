@@ -1,8 +1,14 @@
+server:
+  # El puerto de la API. Los servidores como Render dicen cuál usar con la variable PORT.
+  port: ${PORT:8080}
+
 spring:
   application:
     name: finanzas
   datasource:
-    url: jdbc:postgresql://localhost:5432/finanzas
+    # La dirección de la base de datos. Si no hay variable DB_URL, la de tu ordenador.
+    # (En Docker y en el servidor se pone DB_URL con la suya.)
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/finanzas}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
   jpa:

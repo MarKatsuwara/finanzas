@@ -1,0 +1,8 @@
+# Lo que NO se mete en la caja al construirla (no hace falta y la haría más lenta)
+target/
+web/
+.git/
+.idea/
+*.iml
+.taste-skill/
+HELP.md

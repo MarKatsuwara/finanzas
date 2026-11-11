@@ -1,0 +1,45 @@
+# =========================================================
+# Enciende la API y su base de datos, cada una en su caja, con un solo comando:
+#     docker compose up --build
+# Y para apagarlo todo:
+#     docker compose down
+#
+# Es para PROBAR en tu ordenador. No toca tu PostgreSQL de siempre ni tus datos:
+# esta base de datos vive dentro de Docker y empieza vacía.
+# =========================================================
+services:
+
+  # La base de datos (PostgreSQL 18, igual que la tuya)
+  bd:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: finanzas
+      POSTGRES_USER: finanzas
+      # Esta contraseña SOLO existe dentro de Docker: el puerto de esta base de datos
+      # no se abre a tu ordenador ni a internet, solo la API puede hablar con ella.
+      POSTGRES_PASSWORD: solo-para-docker-local
+    volumes:
+      - datos-bd:/var/lib/postgresql # los datos se guardan aunque apagues las cajas
+    healthcheck: # "¿ya está lista?" La API espera a que diga que sí
+      test: ["CMD-SHELL", "pg_isready -U finanzas -d finanzas"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # La API (se construye con el Dockerfile de esta carpeta)
+  api:
+    build: .
+    ports:
+      - "8080:8080" # el 8080 de tu ordenador → el 8080 de la caja
+    environment:
+      DB_URL: jdbc:postgresql://bd:5432/finanzas # "bd" = el nombre de la caja de arriba
+      DB_USER: finanzas
+      DB_PASSWORD: solo-para-docker-local
+      # La clave de las pulseras sale de TUS variables de entorno (no se escribe aquí)
+      JWT_SECRET: ${JWT_SECRET:?Falta la variable de entorno JWT_SECRET}
+    depends_on:
+      bd:
+        condition: service_healthy
+
+volumes:
+  datos-bd:
