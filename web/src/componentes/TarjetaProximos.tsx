@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { ErrorApi, PrevisionBanco } from '../api'
 import { diaYMes, euros, fechaCorta } from '../formato'
 import { ErrorCarga } from './ErrorCarga'
@@ -53,10 +53,10 @@ export function TarjetaProximos({ datos, error, cargando, recargar }: Props) {
       {datos && dias.length > 0 && (
         <>
           <ol className="dias">
-            {visibles.map((dia) => {
+            {visibles.map((dia, i) => {
               const { dia: numero, mes } = diaYMes(dia.fecha)
               return (
-                <li key={dia.fecha} className="dia">
+                <li key={dia.fecha} className="dia entra" style={{ '--i': i } as CSSProperties}>
                   <div className="fecha-chip" aria-label={`${numero} de ${mes}`}>
                     <span className="fecha-dia">{numero}</span>
                     <span className="fecha-mes">{mes}</span>

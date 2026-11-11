@@ -1,6 +1,7 @@
 import type { PrevisionMes } from '../api'
 import { euros, nombreMes } from '../formato'
 import { useDatos } from '../useDatos'
+import { useVisto } from '../animaciones'
 import { Dinero } from './Dinero'
 import { ErrorCarga } from './ErrorCarga'
 
@@ -31,6 +32,7 @@ export function TarjetaMes({ version }: { version: number }) {
 }
 
 function Contenido({ datos }: { datos: PrevisionMes }) {
+  const { ref: refAnimacion, visto } = useVisto<HTMLDivElement>() // la barra se llena cuando aparece en pantalla
   // Todo lo que entra este mes (ya cobrado + lo que falta) y todo lo que sale
   const entra = datos.ingresosApuntados + datos.ingresosPendientes
   const sale = datos.gastosApuntados + datos.gastosPendientes
@@ -44,12 +46,12 @@ function Contenido({ datos }: { datos: PrevisionMes }) {
       <div>
         <p className="etiqueta">Acabarás el mes con</p>
         <span className="dinero-medio">
-          <Dinero cantidad={datos.saldoPrevisto} conSigno />
+          <Dinero cantidad={datos.saldoPrevisto} conSigno animado />
         </span>
       </div>
 
       {/* La barra: la parte gris es lo que entra; la azul, lo gastado; la clara, lo que falta por pagar */}
-      <div>
+      <div ref={refAnimacion} className={visto ? 'anima visto' : 'anima'}>
         <div
           className={datos.numerosRojos ? 'barra barra-mala' : 'barra'}
           role="img"

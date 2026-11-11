@@ -17,6 +17,11 @@ import { mesActual, moverMes, nombreMesYAnio } from '../formato'
  */
 export function Movimientos() {
   const [mes, setMes] = useState(mesActual())
+  const [direccion, setDireccion] = useState(0) // hacia dónde has cambiado de mes (para la animación de la lista)
+  const irAlMes = (nuevo: string) => {
+    setDireccion(nuevo > mes ? 1 : nuevo < mes ? -1 : 0) // "2026-12" > "2026-11": se pueden comparar como texto
+    setMes(nuevo)
+  }
   const [editando, setEditando] = useState<Movimiento | null>(null) // el que se está modificando (en el ordenador)
   const esMovil = useEsMovil()
   // Pulsar una fila: en el móvil abre la hoja; en el ordenador rellena el formulario de arriba
@@ -32,13 +37,13 @@ export function Movimientos() {
 
         {/* Cambiar de mes: ‹ noviembre de 2026 › */}
         <div className="selector-mes">
-          <button className="boton boton-icono" onClick={() => setMes(moverMes(mes, -1))} aria-label="Mes anterior">
+          <button className="boton boton-icono" onClick={() => irAlMes(moverMes(mes, -1))} aria-label="Mes anterior">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <path d="M10 3 5 8l5 5" />
             </svg>
           </button>
           <span className="selector-mes-nombre" aria-live="polite">{nombreMesYAnio(mes)}</span>
-          <button className="boton boton-icono" onClick={() => setMes(moverMes(mes, 1))} aria-label="Mes siguiente">
+          <button className="boton boton-icono" onClick={() => irAlMes(moverMes(mes, 1))} aria-label="Mes siguiente">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <path d="m6 3 5 5-5 5" />
             </svg>
@@ -56,13 +61,14 @@ export function Movimientos() {
           />
         )}
 
-        <GraficoMeses mes={mes} onElegir={setMes} />
+        <GraficoMeses mes={mes} onElegir={irAlMes} />
 
         <div className="movimientos-fila">
           <ListaMovimientos
             mes={mes}
             onEditar={editar}
             editandoId={editando?.id ?? null}
+            direccion={direccion}
           />
           <TarjetaCategorias mes={mes} />
         </div>

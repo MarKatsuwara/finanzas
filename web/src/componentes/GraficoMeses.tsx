@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
+import { useVisto } from '../animaciones'
 import type { ResumenMes } from '../api'
 import { euros, eurosRedondos, mesActual, mesCorto, moverMes, nombreMesYAnio, sumar } from '../formato'
 import { barraRedondeada, escala, marcasRedondas, useAncho } from '../graficos'
@@ -48,6 +49,7 @@ const MARGEN = { arriba: 12, abajo: 4, izquierda: 60 }
 
 function Grafico({ resumenes, mes, onElegir }: { resumenes: ResumenMes[]; mes: string; onElegir: (mes: string) => void }) {
   const { ref, ancho } = useAncho<HTMLDivElement>()
+  const { ref: refAnimacion, visto } = useVisto<HTMLDivElement>() // las barras crecen cuando el gráfico aparece en pantalla
   const [encima, setEncima] = useState<number | null>(null) // el mes que señalas
 
   // La regla de los euros: del 0 a la barra más alta (redondeada hacia arriba)
@@ -65,6 +67,7 @@ function Grafico({ resumenes, mes, onElegir }: { resumenes: ResumenMes[]; mes: s
 
   return (
     <div ref={ref} className="grafico">
+      <div ref={refAnimacion} className={visto ? 'anima visto' : 'anima'}>
       {ancho > 0 && (
         <svg width={ancho} height={ALTO} aria-hidden="true">
           {/* Las rayas horizontales con sus euros */}
@@ -85,8 +88,19 @@ function Grafico({ resumenes, mes, onElegir }: { resumenes: ResumenMes[]; mes: s
                 {r.mes === mes && (
                   <rect x={centro(i) - anchoZona / 2 + 4} y={0} width={anchoZona - 8} height={ALTO} rx={10} className="grafico-mes-elegido" />
                 )}
-                <path d={barraRedondeada(centro(i) - 1 - anchoBarra, y(0) - alto(r.totalIngresos), anchoBarra, alto(r.totalIngresos))} fill="var(--grafico-entra)" />
-                <path d={barraRedondeada(centro(i) + 1, y(0) - alto(r.totalGastos), anchoBarra, alto(r.totalGastos))} fill="var(--grafico-sale)" />
+                {/* Las dos barras crecen desde el suelo, mes a mes (--i: el orden, para el retraso) */}
+                <path
+                  d={barraRedondeada(centro(i) - 1 - anchoBarra, y(0) - alto(r.totalIngresos), anchoBarra, alto(r.totalIngresos))}
+                  fill="var(--grafico-entra)"
+                  className="crece"
+                  style={{ '--i': i * 2 } as CSSProperties}
+                />
+                <path
+                  d={barraRedondeada(centro(i) + 1, y(0) - alto(r.totalGastos), anchoBarra, alto(r.totalGastos))}
+                  fill="var(--grafico-sale)"
+                  className="crece"
+                  style={{ '--i': i * 2 + 1 } as CSSProperties}
+                />
                 {/* Una zona invisible (más grande que las barras) para que sea fácil señalar el mes */}
                 <rect
                   x={centro(i) - anchoZona / 2}
@@ -103,6 +117,7 @@ function Grafico({ resumenes, mes, onElegir }: { resumenes: ResumenMes[]; mes: s
           })}
         </svg>
       )}
+      </div>
 
       {/* Los meses de abajo son botones: al pulsarlos, la lista salta a ese mes */}
       <div className="grafico-meses" style={{ paddingLeft: MARGEN.izquierda }}>

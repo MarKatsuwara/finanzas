@@ -1,4 +1,5 @@
-import { useId, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useId, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
+import { useVisto } from '../animaciones'
 import type { DiaPrevisto, ErrorApi, PrevisionBanco } from '../api'
 import { diasEntre, euros, eurosRedondos, fechaCorta, sumarDias } from '../formato'
 import { escala, marcasRedondas, useAncho } from '../graficos'
@@ -39,6 +40,7 @@ const MARGEN = { arriba: 24, derecha: 8, abajo: 28, izquierda: 60 }
 /** El gráfico de verdad: una línea con el saldo al final de cada día. */
 function Grafico({ datos }: { datos: PrevisionBanco }) {
   const { ref, ancho } = useAncho<HTMLDivElement>()
+  const { ref: refAnimacion, visto } = useVisto<HTMLDivElement>() // la línea se dibuja cuando el gráfico aparece en pantalla
   const [elegido, setElegido] = useState<number | null>(null) // el día que señalas con el ratón o el dedo
   const id = useId() // un nombre único para los "recortes" del SVG
 
@@ -106,6 +108,7 @@ function Grafico({ datos }: { datos: PrevisionBanco }) {
 
   return (
     <div ref={ref} className="grafico">
+      <div ref={refAnimacion} className={visto ? 'anima visto' : 'anima'}>
       {ancho > 0 && (
         <svg
           width={ancho}
@@ -161,20 +164,30 @@ function Grafico({ datos }: { datos: PrevisionBanco }) {
             </text>
           ))}
 
-          {/* El relleno suave y la línea: azul por encima del 0, rojo por debajo */}
-          <path d={area} fill="var(--accent)" opacity={0.1} clipPath={`url(#${id}-arriba)`} />
-          <path d={area} fill="var(--negative)" opacity={0.12} clipPath={`url(#${id}-abajo)`} />
-          <path d={linea} className="grafico-linea" stroke="var(--accent)" clipPath={`url(#${id}-arriba)`} />
-          <path d={linea} className="grafico-linea" stroke="var(--negative)" clipPath={`url(#${id}-abajo)`} />
+          {/* El relleno suave y la línea: azul por encima del 0, rojo por debajo.
+              pathLength={1}: la línea "mide 1", así index.css puede dibujarla de 0 a 1 (.anima .dibuja) */}
+          <path d={area} fill="var(--accent)" opacity={0.1} clipPath={`url(#${id}-arriba)`} className="aparece-tarde" />
+          <path d={area} fill="var(--negative)" opacity={0.12} clipPath={`url(#${id}-abajo)`} className="aparece-tarde" />
+          <path d={linea} pathLength={1} className="grafico-linea dibuja" stroke="var(--accent)" clipPath={`url(#${id}-arriba)`} />
+          <path d={linea} pathLength={1} className="grafico-linea dibuja" stroke="var(--negative)" clipPath={`url(#${id}-abajo)`} />
 
-          {/* Un puntito en cada día que entra o sale dinero */}
+          {/* Un puntito en cada día que entra o sale dinero. Salen en orden, según la línea va llegando
+              (--llega: en qué momento de la animación pasa la línea por ese día) */}
           {[...diasConMovimientos.keys()].map((i) => (
-            <circle key={i} cx={x(i)} cy={y(saldos[i])} r={4} fill={color(saldos[i])} className="grafico-punto" />
+            <circle
+              key={i}
+              cx={x(i)}
+              cy={y(saldos[i])}
+              r={4}
+              fill={color(saldos[i])}
+              className="grafico-punto salta"
+              style={{ '--llega': `${Math.round((i / totalDias) * 900)}ms` } as CSSProperties}
+            />
           ))}
 
           {/* El saldo del último día, escrito al final de la línea */}
           {elegido === null && (
-            <text x={x(totalDias)} y={y(ultimo) - 10} textAnchor="end" className="grafico-texto grafico-texto-fuerte">
+            <text x={x(totalDias)} y={y(ultimo) - 10} textAnchor="end" className="grafico-texto grafico-texto-fuerte aparece-tarde">
               {euros(ultimo)}
             </text>
           )}
@@ -188,6 +201,7 @@ function Grafico({ datos }: { datos: PrevisionBanco }) {
           )}
         </svg>
       )}
+      </div>
 
       {/* La cajita con los datos del día señalado (también la leen los lectores de pantalla) */}
       <div aria-live="polite">

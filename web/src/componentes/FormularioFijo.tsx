@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Frecuencia, type PagoRecurrente } from '../api'
 import { avisar } from '../avisos'
-import { avisarCambio } from '../cambios'
+import { avisarCambio, marcarNuevo } from '../cambios'
 import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { aproximarAlMes, FRECUENCIAS } from '../frecuencias'
 import { useDatos } from '../useDatos'
@@ -73,6 +73,7 @@ export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = fa
         return
       }
       const nuevo = await enviar<PagoRecurrente>('/api/pagos-recurrentes', 'POST', datos)
+      marcarNuevo(`fijo-${nuevo.id}`) // su fila brillará un momento en la lista
       avisarCambio()
       if (enHoja) {
         avisar(`Añadido: ${nuevo.descripcion}`)

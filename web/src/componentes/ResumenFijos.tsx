@@ -30,7 +30,7 @@ export function ResumenFijos({ fijos }: { fijos: PagoRecurrente[] }) {
       <div className="saldo">
         <div className="saldo-principal">
           <p className="cifra-con-unidad">
-            <Dinero cantidad={gastosMes} grande />
+            <Dinero cantidad={gastosMes} grande animado />
             <span className="unidad">al mes</span>
           </p>
           <p className="etiqueta">

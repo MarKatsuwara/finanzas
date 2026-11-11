@@ -743,6 +743,64 @@ a.boton { display: inline-flex; align-items: center; text-decoration: none; }
 .barra-item:active, .movimiento-tocable:active, .fijo-tocable:active { transform: scale(0.97); }
 .barra-mas:active { transform: scale(0.92); }
 
+/* ---------------------------------------------------------
+   Las animaciones de los datos.
+   Los gráficos y las barras llevan la clase "anima": su animación está en pausa (y lo que se va a
+   dibujar, escondido) hasta que aparecen en pantalla y React les añade "visto" (useVisto).
+   --------------------------------------------------------- */
+.anima .dibuja, .anima .aparece-tarde, .anima .salta, .anima .crece,
+.anima .barra span, .anima .ranking-barra { animation-play-state: paused; }
+.anima.visto .dibuja, .anima.visto .aparece-tarde, .anima.visto .salta, .anima.visto .crece,
+.anima.visto .barra span, .anima.visto .ranking-barra { animation-play-state: running; }
+
+/* La línea del saldo se dibuja de izquierda a derecha (mide 1 gracias a pathLength={1}) */
+.dibuja { stroke-dasharray: 1; animation: dibujar 1.1s var(--curva) 120ms both; }
+@keyframes dibujar { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* El relleno y la cifra final aparecen cuando la línea ya va avanzada */
+.aparece-tarde { animation: aparecer 600ms var(--curva) 550ms both; }
+@keyframes aparecer { from { opacity: 0; } }
+
+/* Los puntitos de cada pago saltan cuando la línea pasa por ellos */
+.salta { transform-box: fill-box; transform-origin: center; animation: saltar 420ms var(--curva) calc(var(--llega) + 120ms) both; }
+@keyframes saltar { 0% { transform: scale(0); } 70% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* Las barras de los meses crecen desde el suelo, una detrás de otra */
+.crece { transform-box: fill-box; transform-origin: bottom; animation: crecer 700ms var(--curva) calc(var(--i) * 55ms) both; }
+@keyframes crecer { from { transform: scaleY(0); } }
+
+/* Las barras de "Este mes" y de las categorías se llenan de izquierda a derecha.
+   Si luego cambia la cifra (al apuntar algo), cambian de largo suavemente. */
+.barra span, .ranking-barra {
+  transform-origin: left;
+  animation: llenar 900ms var(--curva) both;
+  transition: width 500ms var(--curva), left 500ms var(--curva);
+}
+.ranking li { --i: 0; }
+.ranking-barra { animation-delay: calc(var(--i) * 70ms + 100ms); }
+.barra-gastado { animation-delay: 150ms; }
+.barra-pendiente { animation-delay: 300ms; }
+@keyframes llenar { from { transform: scaleX(0); } }
+
+/* Las filas de las listas entran una detrás de otra (como mucho se espera a la fila 12) */
+.entra { animation: fila-entra 420ms var(--curva) calc(min(var(--i, 0), 12) * 40ms) both; }
+@keyframes fila-entra { from { opacity: 0; transform: translateY(10px); } }
+
+/* La fila que acabas de apuntar brilla un momento en azul */
+.fila-nueva {
+  animation: fila-entra 420ms var(--curva) both, fila-brilla 1.8s ease-out 200ms;
+  border-radius: var(--radius-inner);
+  margin-inline: -10px; /* el brillo, un poco más ancho que el texto */
+  padding-inline: 10px;
+}
+@keyframes fila-brilla { 0%, 30% { background-color: var(--accent-soft); } 100% { background-color: transparent; } }
+
+/* Al cambiar de mes, la lista entra deslizándose desde el lado del mes nuevo */
+.desliza-desde-derecha   { animation: desde-derecha 360ms var(--curva) both; }
+.desliza-desde-izquierda { animation: desde-izquierda 360ms var(--curva) both; }
+@keyframes desde-derecha   { from { opacity: 0; transform: translateX(32px); } }
+@keyframes desde-izquierda { from { opacity: 0; transform: translateX(-32px); } }
+
 /* =========================================================
    7c. LA BARRA DE ABAJO DEL MÓVIL
    ========================================================= */

@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { enviar, ErrorApi, type PagoRecurrente } from '../api'
 import { avisar } from '../avisos'
-import { avisarCambio } from '../cambios'
+import { avisarCambio, useNuevo } from '../cambios'
 import { useEsMovil } from '../movil'
 import { euros, fechaCorta } from '../formato'
 import { nombreFrecuencia } from '../frecuencias'
@@ -23,6 +23,7 @@ interface Props {
  */
 export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
   const esMovil = useEsMovil()
+  const nuevo = useNuevo() // el que acabas de añadir: su fila brilla un momento
   const [filtro, setFiltro] = useState<Filtro>('TODOS')
   const [confirmando, setConfirmando] = useState<number | null>(null)
   const [guardando, setGuardando] = useState<number | null>(null)
@@ -89,7 +90,7 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
       {visibles.length === 0 && <p className="vacio etiqueta">{vacio}</p>}
 
       <ul className="fijos">
-        {visibles.map((f) => {
+        {visibles.map((f, i) => {
           const texto = (
             <>
               {/* Línea 1: "Alquiler · 650,00 €" + su categoría */}
@@ -119,12 +120,14 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
               desactivado={guardando === f.id}
             />
           )
-          const clases = `fijo${f.activo ? '' : ' fijo-apagado'}${f.id === editandoId ? ' fijo-editando' : ''}`
+          // "entra": la fila aparece un poquito después que la anterior (--i = su puesto)
+          const clases = `fijo entra${f.activo ? '' : ' fijo-apagado'}${f.id === editandoId ? ' fijo-editando' : ''}${nuevo === `fijo-${f.id}` ? ' fila-nueva' : ''}`
+          const estilo = { '--i': i } as CSSProperties
 
           // En el móvil: el texto es un botón que abre la hoja; el interruptor se queda a la derecha
           if (esMovil) {
             return (
-              <li key={f.id} className={clases}>
+              <li key={f.id} className={clases} style={estilo}>
                 <button type="button" className="fijo-texto fijo-tocable" onClick={() => onEditar(f)}>
                   {texto}
                 </button>
@@ -138,6 +141,7 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
             <li
               key={f.id}
               className={f.id === editandoId ? clases : `${clases} fijo-pulsable`}
+              style={estilo}
               onClick={(e) => {
                 if (!(e.target as Element).closest('button') && f.id !== editandoId) onEditar(f)
               }}

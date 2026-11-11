@@ -26,3 +26,32 @@ function suscribir(oyente: () => void) {
 export function useCambios(): number {
   return useSyncExternalStore(suscribir, () => contador)
 }
+
+// =========================================================
+// "Esto es nuevo": lo último que se ha apuntado o añadido, para que su fila brille un momento.
+// Es un texto como "mov-57" o "fijo-12" y se olvida solo a los 2 segundos.
+// =========================================================
+
+let nuevo: string | null = null
+const oyentesNuevo = new Set<() => void>()
+
+export function marcarNuevo(clave: string) {
+  nuevo = clave
+  oyentesNuevo.forEach((oyente) => oyente())
+  setTimeout(() => {
+    if (nuevo !== clave) return
+    nuevo = null
+    oyentesNuevo.forEach((oyente) => oyente())
+  }, 2000)
+}
+
+function suscribirNuevo(oyente: () => void) {
+  oyentesNuevo.add(oyente)
+  return () => {
+    oyentesNuevo.delete(oyente)
+  }
+}
+
+export function useNuevo(): string | null {
+  return useSyncExternalStore(suscribirNuevo, () => nuevo)
+}

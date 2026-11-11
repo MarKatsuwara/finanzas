@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import type { ResumenMes, TotalCategoria } from '../api'
+import { useVisto } from '../animaciones'
 import { euros, nombreMes } from '../formato'
 import { useDatos } from '../useDatos'
 import { ChipCategoria } from './ChipCategoria'
@@ -54,6 +56,7 @@ interface RankingProps {
 /** Una lista de categorías de mayor a menor, cada una con su barrita proporcional. */
 function Ranking({ titulo, total, filas, vacio, tipo }: RankingProps) {
   const mayor = Math.max(...filas.map((f) => f.total), 1) // la categoría más grande ocupa toda la barra
+  const { ref: refAnimacion, visto } = useVisto<HTMLUListElement>() // las barritas se llenan, una detrás de otra, al aparecer
 
   return (
     <div>
@@ -68,9 +71,9 @@ function Ranking({ titulo, total, filas, vacio, tipo }: RankingProps) {
       {filas.length === 0 ? (
         <p className="etiqueta">{vacio}</p>
       ) : (
-        <ul className="ranking">
-          {filas.map((f) => (
-            <li key={f.categoriaId ?? 'sin'}>
+        <ul ref={refAnimacion} className={visto ? 'ranking anima visto' : 'ranking anima'}>
+          {filas.map((f, i) => (
+            <li key={f.categoriaId ?? 'sin'} style={{ '--i': i } as CSSProperties}>
               <div className="ranking-fila">
                 <ChipCategoria id={f.categoriaId} nombre={f.categoria} />
                 <span className="num">{euros(f.total)}</span>

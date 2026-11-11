@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Movimiento } from '../api'
 import { avisar } from '../avisos'
-import { avisarCambio } from '../cambios'
+import { avisarCambio, marcarNuevo } from '../cambios'
 import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { useDatos } from '../useDatos'
 
@@ -70,6 +70,7 @@ export function FormularioMovimiento({ editando = null, onTerminarEdicion, enHoj
         return
       }
       const nuevo = await enviar<Movimiento>('/api/movimientos', 'POST', datos)
+      marcarNuevo(`mov-${nuevo.id}`) // su fila brillará un momento en la lista
       avisarCambio()
       if (enHoja) {
         // En la hoja: se cierra y un aviso abajo dice lo que has apuntado
