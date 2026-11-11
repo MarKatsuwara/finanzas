@@ -9,8 +9,8 @@ App web para controlar tu dinero: lo que entra, lo que sale y los pagos que se r
 ## Qué hace
 
 - **Saldo de hoy y previsión día a día.** Le dices cuánto tienes en el banco y calcula cuánto te quedará cada día de los próximos 30, contando los pagos fijos. Si algún día bajas de 0, te avisa en rojo y te dice cuál.
-- **Movimientos.** Apuntas gastos e ingresos con categoría y fecha, los ves agrupados por día y filtras por mes.
-- **Gastos fijos.** Pagos que se repiten cada semana, cada 4 semanas, cada mes, cada 2, 3 o 6 meses o cada año. Te dice cuánto suponen al mes y al año y cuándo toca el siguiente.
+- **Movimientos.** Apuntas gastos e ingresos con categoría y fecha, los ves agrupados por día, filtras por mes y los editas si te has equivocado.
+- **Gastos fijos.** Pagos que se repiten cada semana, cada 4 semanas, cada mes, cada 2, 3 o 6 meses o cada año. Te dice cuánto suponen al mes y al año y cuándo toca el siguiente. Se pueden editar o pausar con un interruptor.
 - **Resumen del mes.** Lo que ha entrado y salido, por categoría, con gráficos de los últimos meses.
 - **Cuentas de usuario.** Login con Google, sin contraseñas. Cada usuario ve solo sus datos y puede borrar su cuenta con todo lo que tenga.
 - **Tema claro y oscuro**, y se usa bien en el móvil.
@@ -32,7 +32,7 @@ Netlify sirve la web y reenvía todo lo que empieza por `/api` a la API, así el
 | API | Java 21, Spring Boot 4, Spring Data JPA, Spring Security (OAuth2 Resource Server), Bean Validation |
 | Base de datos | PostgreSQL 18, migraciones con Flyway |
 | Web | React 19, TypeScript, Vite. Sin librerías de componentes ni de gráficos: los gráficos son SVG hechos a mano |
-| Tests | JUnit 5, MockMvc, H2 en memoria (114 tests) |
+| Tests | JUnit 5, MockMvc, H2 en memoria (119 tests) |
 | Despliegue | Docker, Render (API), Neon (base de datos), Netlify (web) |
 
 ### Algunas decisiones
@@ -43,6 +43,26 @@ Netlify sirve la web y reenvía todo lo que empieza por `/api` a la API, así el
 - **La fecha de "hoy" se inyecta** (`Clock`) para que los tests de la previsión no dependan del día en que se ejecutan.
 - **Nunca se modifica una migración ya aplicada.** Cada cambio de tablas es una migración nueva (V1 a V8).
 - **Los secretos van en variables de entorno**, nunca en el código.
+
+## Seguridad
+
+La app está abierta a cualquiera con una cuenta de Google, así que está pensada para que nadie pueda ver ni romper lo de otro.
+
+| Riesgo | Cómo se evita |
+|---|---|
+| Ver o cambiar los datos de otro usuario | Todas las consultas filtran por el usuario del token. `SeparacionDeUsuariosTest` comprueba con dos usuarios que uno no puede leer, cambiar ni borrar nada del otro |
+| Entrar con una cuenta de Google falsa | La API comprueba la firma del token de Google con sus claves públicas, que vaya dirigido a esta app (`aud`) y que el email esté verificado |
+| Falsificar o reutilizar una sesión | JWT firmado con HS256 y una clave de al menos 32 caracteres que solo existe en el servidor. Caduca a los 7 días y deja de valer al momento si el usuario borra su cuenta |
+| Robo de contraseñas | No hay contraseñas: el login es solo con Google |
+| Inyección SQL | Spring Data JPA con consultas parametrizadas |
+| Datos absurdos (textos enormes, importes gigantes, rangos de fechas sin fin) | Bean Validation en cada petición y límites en los parámetros; la API responde 400 |
+| Código malicioso en la web (XSS) | React escapa todo lo que pinta y la web manda una **Content Security Policy** que solo deja cargar código, estilos e imágenes de la propia web y de Google |
+| Meter la web en un marco de otra para engañar al usuario (clickjacking) | `frame-ancestors 'none'` y `X-Frame-Options: DENY` |
+| Llenar la base de datos para tirar la app a todos | Límite por usuario: 20.000 movimientos, 100 categorías, 200 gastos fijos y 5.000 saldos. Al llegar, la API responde 409 con un mensaje claro |
+| Que otra web llame a la API desde el navegador | Sin CORS abierto: el navegador lo bloquea. La web llega a la API a través del proxy de Netlify, en la misma dirección |
+| Escuchar la conexión | Todo va por HTTPS, con HSTS |
+
+Además, la API corre en Docker con un usuario sin permisos de administrador, y `npm audit` no encuentra vulnerabilidades en las dependencias de la web.
 
 ## Arrancarla en tu ordenador
 
