@@ -4,4 +4,4 @@
 try {
   var tema = localStorage.getItem('finanzas-tema')
   if (tema === 'claro' || tema === 'oscuro') document.documentElement.dataset.tema = tema
-} catch (e) {}
+} catch {}
