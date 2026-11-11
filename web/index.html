@@ -10,12 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
     <!-- Pone el tema elegido ANTES de pintar la página, para que no se vea un "flash" del otro tema -->
-    <script>
-      try {
-        var tema = localStorage.getItem('finanzas-tema')
-        if (tema === 'claro' || tema === 'oscuro') document.documentElement.dataset.tema = tema
-      } catch (e) {}
-    </script>
+    <script src="/tema.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -16,6 +16,39 @@
 # El "camarero": todo lo que empieza por /api lo reenvía a la API de Render, igual que hace Vite en tu PC.
 # status = 200 significa "reenvíalo por detrás", así para el navegador todo está en la misma dirección.
 # (Render añadió "-i01g" al nombre porque "finanzas-api" ya estaba cogido.)
+# Cabeceras de seguridad: instrucciones que la web da al navegador en cada página.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # CSP = la lista de sitios de los que el navegador puede cargar cosas. Lo que no esté aquí, se bloquea.
+    # Así, si alguna vez se colara código malicioso, no podría ejecutarse ni mandar tu sesión a otro sitio.
+    #   'self'                       → la propia web (finanzas-mark.netlify.app)
+    #   accounts.google.com/gsi/...  → el botón de "Iniciar sesión con Google"
+    #   fonts.googleapis/gstatic     → la letra Manrope
+    #   *.googleusercontent.com      → tu foto de perfil de Google
+    #   frame-ancestors 'none'       → ninguna otra web puede meter la nuestra dentro de un marco
+    Content-Security-Policy = """\
+      default-src 'self'; \
+      script-src 'self' https://accounts.google.com/gsi/client; \
+      style-src 'self' https://fonts.googleapis.com https://accounts.google.com/gsi/style; \
+      font-src https://fonts.gstatic.com; \
+      img-src 'self' data: https://*.googleusercontent.com; \
+      connect-src 'self' https://accounts.google.com/gsi/; \
+      frame-src https://accounts.google.com/gsi/; \
+      frame-ancestors 'none'; \
+      base-uri 'self'; \
+      form-action 'self'; \
+      object-src 'none'\
+      """
+    # Lo mismo que frame-ancestors, para navegadores antiguos
+    X-Frame-Options = "DENY"
+    # "No adivines qué tipo de archivo es: usa el que te digo"
+    X-Content-Type-Options = "nosniff"
+    # A otras webs solo les decimos de qué web vienes, no la página exacta
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # La app no usa cámara, micrófono, ubicación ni pagos: los bloqueamos
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+
 [[redirects]]
   from = "/api/*"
   to = "https://finanzas-api-i01g.onrender.com/api/:splat"
