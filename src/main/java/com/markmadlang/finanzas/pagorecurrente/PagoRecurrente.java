@@ -29,6 +29,10 @@ public class PagoRecurrente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // De quién es (el id del usuario). Solo puede ser null en los datos de antes de que existieran usuarios.
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     @Column(nullable = false)
     private String descripcion;
 
@@ -58,8 +62,9 @@ public class PagoRecurrente {
     protected PagoRecurrente() {
     }
 
-    public PagoRecurrente(String descripcion, TipoMovimiento tipo, BigDecimal importe, Frecuencia frecuencia,
-                          LocalDate fechaInicio, boolean activo, Categoria categoria) {
+    public PagoRecurrente(Long usuarioId, String descripcion, TipoMovimiento tipo, BigDecimal importe,
+                          Frecuencia frecuencia, LocalDate fechaInicio, boolean activo, Categoria categoria) {
+        this.usuarioId = usuarioId;
         actualizar(descripcion, tipo, importe, frecuencia, fechaInicio, activo, categoria);
     }
 
@@ -118,6 +123,10 @@ public class PagoRecurrente {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
     }
 
     public String getDescripcion() {

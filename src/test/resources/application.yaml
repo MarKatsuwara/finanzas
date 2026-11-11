@@ -2,7 +2,7 @@ spring:
   application:
     name: finanzas
   datasource:
-    url: jdbc:h2:mem:finanzas;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    url: jdbc:h2:mem:finanzas-${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE  # una BD distinta por contexto de tests
     username: sa
     password: ""
   jpa:

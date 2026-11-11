@@ -43,6 +43,9 @@ class SaldoBancoControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private SaldoBancoRepository repository;
 
     @Autowired
@@ -59,16 +62,16 @@ class SaldoBancoControllerTest {
     }
 
     private void saldo(String fecha, String importe) {
-        repository.save(new SaldoBanco(LocalDate.parse(fecha), new BigDecimal(importe)));
+        repository.save(new SaldoBanco(usuario.id(), LocalDate.parse(fecha), new BigDecimal(importe)));
     }
 
     private void apuntar(TipoMovimiento tipo, String importe, String fecha, String descripcion) {
-        movimientoRepository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha),
+        movimientoRepository.save(new Movimiento(usuario.id(), tipo, new BigDecimal(importe), LocalDate.parse(fecha),
                 descripcion, null));
     }
 
     private void recurrente(String descripcion, TipoMovimiento tipo, String importe, String inicio) {
-        pagoRecurrenteRepository.save(new PagoRecurrente(descripcion, tipo, new BigDecimal(importe),
+        pagoRecurrenteRepository.save(new PagoRecurrente(usuario.id(), descripcion, tipo, new BigDecimal(importe),
                 Frecuencia.MENSUAL, LocalDate.parse(inicio), true, null));
     }
 

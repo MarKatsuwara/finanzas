@@ -40,20 +40,20 @@ public class SaldoBancoService {
     }
 
     @Transactional
-    public SaldoApuntadoResponse apuntar(SaldoBancoRequest datos) {
-        return SaldoApuntadoResponse.desde(repository.save(new SaldoBanco(datos.fecha(), datos.importe())));
+    public SaldoApuntadoResponse apuntar(Long usuarioId, SaldoBancoRequest datos) {
+        return SaldoApuntadoResponse.desde(repository.save(new SaldoBanco(usuarioId, datos.fecha(), datos.importe())));
     }
 
-    public List<SaldoApuntadoResponse> historial() {
-        return repository.findAllByOrderByFechaDescIdDesc().stream()
+    public List<SaldoApuntadoResponse> historial(Long usuarioId) {
+        return repository.findByUsuarioIdOrderByFechaDescIdDesc(usuarioId).stream()
                 .map(SaldoApuntadoResponse::desde)
                 .toList();
     }
 
     /** ¿Cuánto tengo hoy? */
-    public SaldoActualResponse saldoActual() {
+    public SaldoActualResponse saldoActual(Long usuarioId) {
         LocalDate hoy = LocalDate.now(reloj);
-        SaldoBanco apuntado = repository.findFirstByFechaLessThanEqualOrderByFechaDescIdDesc(hoy)
+        SaldoBanco apuntado = repository.findFirstByUsuarioIdAndFechaLessThanEqualOrderByFechaDescIdDesc(usuarioId, hoy)
                 .orElseThrow(SaldoNoApuntadoException::new);
 
         // Los movimientos de ESE MISMO día ya están dentro del saldo que viste en el banco,
@@ -62,7 +62,7 @@ public class SaldoBancoService {
         BigDecimal ingresos = BigDecimal.ZERO.setScale(2);
         BigDecimal gastos = BigDecimal.ZERO.setScale(2);
         if (!desde.isAfter(hoy)) {
-            for (TotalPorCategoria fila : movimientoRepository.totalesPorCategoria(desde, hoy)) {
+            for (TotalPorCategoria fila : movimientoRepository.totalesPorCategoria(usuarioId, desde, hoy)) {
                 if (fila.tipo() == TipoMovimiento.INGRESO) {
                     ingresos = ingresos.add(fila.total());
                 } else {
@@ -76,11 +76,11 @@ public class SaldoBancoService {
     }
 
     /** ¿Cómo irá mi saldo en los próximos "dias" días? (de mañana a hoy + dias) */
-    public PrevisionBancoResponse prevision(int dias) {
+    public PrevisionBancoResponse prevision(Long usuarioId, int dias) {
         if (dias < 1 || dias > PagoRecurrenteService.MAX_DIAS) {
             throw new CampoNoValidoException("dias", "Los días deben estar entre 1 y " + PagoRecurrenteService.MAX_DIAS);
         }
-        SaldoActualResponse actual = saldoActual();
+        SaldoActualResponse actual = saldoActual(usuarioId);
         LocalDate manana = actual.hoy().plusDays(1);
         LocalDate hasta = actual.hoy().plusDays(dias);
 
@@ -89,12 +89,12 @@ public class SaldoBancoService {
         Map<LocalDate, List<MovimientoPrevisto>> porDia = new TreeMap<>();
 
         // a) Pagos recurrentes (alquiler, Netflix, nómina...)
-        pagoRecurrenteService.proximos(manana, dias).forEach(pago ->
+        pagoRecurrenteService.proximos(usuarioId, manana, dias).forEach(pago ->
                 porDia.computeIfAbsent(pago.fecha(), f -> new ArrayList<>())
                         .add(new MovimientoPrevisto(pago.descripcion(), pago.tipo(), pago.importe(), "PAGO_RECURRENTE")));
 
         // b) Movimientos que apuntaste con fecha futura
-        movimientoRepository.findByFechaBetweenOrderByFechaAscIdAsc(manana, hasta).forEach(m ->
+        movimientoRepository.findByUsuarioIdAndFechaBetweenOrderByFechaAscIdAsc(usuarioId, manana, hasta).forEach(m ->
                 porDia.computeIfAbsent(m.getFecha(), f -> new ArrayList<>())
                         .add(new MovimientoPrevisto(m.getDescripcion(), m.getTipo(), m.getImporte(), "MOVIMIENTO")));
 

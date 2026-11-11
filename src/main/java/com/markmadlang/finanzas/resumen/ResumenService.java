@@ -24,9 +24,9 @@ public class ResumenService {
         this.movimientoRepository = movimientoRepository;
     }
 
-    public ResumenMensualResponse resumenDelMes(YearMonth mes) {
+    public ResumenMensualResponse resumenDelMes(Long usuarioId, YearMonth mes) {
         // Del día 1 al último día del mes (28, 29, 30 o 31: YearMonth lo sabe)
-        List<TotalPorCategoria> filas = movimientoRepository.totalesPorCategoria(mes.atDay(1), mes.atEndOfMonth());
+        List<TotalPorCategoria> filas = movimientoRepository.totalesPorCategoria(usuarioId, mes.atDay(1), mes.atEndOfMonth());
 
         List<TotalCategoriaResponse> ingresos = porCategoria(filas, TipoMovimiento.INGRESO);
         List<TotalCategoriaResponse> gastos = porCategoria(filas, TipoMovimiento.GASTO);

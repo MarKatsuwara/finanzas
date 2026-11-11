@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.seguridad.UsuarioId;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +30,8 @@ public class PagoRecurrenteController {
     }
 
     @GetMapping
-    public List<PagoRecurrenteResponse> listar() {
-        return service.listar();
+    public List<PagoRecurrenteResponse> listar(@UsuarioId Long usuarioId) {
+        return service.listar(usuarioId);
     }
 
     /**
@@ -41,30 +42,32 @@ public class PagoRecurrenteController {
      */
     @GetMapping("/proximos")
     public List<ProximoPagoResponse> proximos(
+            @UsuarioId Long usuarioId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(defaultValue = "30") int dias) {
-        return service.proximos(desde != null ? desde : LocalDate.now(), dias);
+        return service.proximos(usuarioId, desde != null ? desde : LocalDate.now(), dias);
     }
 
     @GetMapping("/{id}")
-    public PagoRecurrenteResponse obtener(@PathVariable Long id) {
-        return service.obtener(id);
+    public PagoRecurrenteResponse obtener(@UsuarioId Long usuarioId, @PathVariable Long id) {
+        return service.obtener(usuarioId, id);
     }
 
     @PostMapping
-    public ResponseEntity<PagoRecurrenteResponse> crear(@Valid @RequestBody PagoRecurrenteRequest datos) {
-        PagoRecurrenteResponse creado = service.crear(datos);
+    public ResponseEntity<PagoRecurrenteResponse> crear(@UsuarioId Long usuarioId, @Valid @RequestBody PagoRecurrenteRequest datos) {
+        PagoRecurrenteResponse creado = service.crear(usuarioId, datos);
         return ResponseEntity.created(URI.create("/api/pagos-recurrentes/" + creado.id())).body(creado);
     }
 
     @PutMapping("/{id}")
-    public PagoRecurrenteResponse actualizar(@PathVariable Long id, @Valid @RequestBody PagoRecurrenteRequest datos) {
-        return service.actualizar(id, datos);
+    public PagoRecurrenteResponse actualizar(@UsuarioId Long usuarioId, @PathVariable Long id,
+                                             @Valid @RequestBody PagoRecurrenteRequest datos) {
+        return service.actualizar(usuarioId, id, datos);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> borrar(@PathVariable Long id) {
-        service.borrar(id);
+    public ResponseEntity<Void> borrar(@UsuarioId Long usuarioId, @PathVariable Long id) {
+        service.borrar(usuarioId, id);
         return ResponseEntity.noContent().build();
     }
 }

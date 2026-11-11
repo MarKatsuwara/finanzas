@@ -28,6 +28,10 @@ public class Movimiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // el id lo pone PostgreSQL
     private Long id;
 
+    // De quién es (el id del usuario). Solo puede ser null en los datos de antes de que existieran usuarios.
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     @Enumerated(EnumType.STRING) // se guarda como texto: "INGRESO" o "GASTO"
     @Column(nullable = false, length = 10)
     private TipoMovimiento tipo;
@@ -52,7 +56,9 @@ public class Movimiento {
     protected Movimiento() {
     }
 
-    public Movimiento(TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion, Categoria categoria) {
+    public Movimiento(Long usuarioId, TipoMovimiento tipo, BigDecimal importe, LocalDate fecha, String descripcion,
+                      Categoria categoria) {
+        this.usuarioId = usuarioId;
         actualizar(tipo, importe, fecha, descripcion, categoria);
     }
 
@@ -67,6 +73,10 @@ public class Movimiento {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
     }
 
     public TipoMovimiento getTipo() {

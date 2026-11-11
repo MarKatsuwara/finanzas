@@ -43,6 +43,9 @@ class PrevisionControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private MovimientoRepository movimientoRepository;
 
     @Autowired
@@ -58,13 +61,13 @@ class PrevisionControllerTest {
     }
 
     private void apuntar(TipoMovimiento tipo, String importe, String fecha, String descripcion) {
-        movimientoRepository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha),
+        movimientoRepository.save(new Movimiento(usuario.id(), tipo, new BigDecimal(importe), LocalDate.parse(fecha),
                 descripcion, null));
     }
 
     private void recurrente(String descripcion, TipoMovimiento tipo, String importe, Frecuencia frecuencia,
                             String inicio, boolean activo) {
-        pagoRecurrenteRepository.save(new PagoRecurrente(descripcion, tipo, new BigDecimal(importe), frecuencia,
+        pagoRecurrenteRepository.save(new PagoRecurrente(usuario.id(), descripcion, tipo, new BigDecimal(importe), frecuencia,
                 LocalDate.parse(inicio), activo, null));
     }
 
@@ -131,7 +134,7 @@ class PrevisionControllerTest {
     void elUltimoDiaDelMesYaNoQuedanPagosPendientes() {
         recurrente("Netflix", TipoMovimiento.GASTO, "12.99", Frecuencia.SEMANAL, "2026-11-01", true);
 
-        PrevisionResponse prevision = previsionService.prevision(LocalDate.of(2026, 11, 30));
+        PrevisionResponse prevision = previsionService.prevision(usuario.id(), LocalDate.of(2026, 11, 30));
 
         assertThat(prevision.pagosPendientes()).isEmpty();
         assertThat(prevision.gastosPendientes()).isEqualByComparingTo("0");

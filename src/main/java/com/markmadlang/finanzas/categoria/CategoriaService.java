@@ -9,10 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/** La lógica de las categorías. */
+/** La lógica de las categorías. Cada usuario tiene las suyas. */
 @Service
 @Transactional(readOnly = true)
 public class CategoriaService {
+
+    /** Las categorías con las que empieza cada usuario nuevo (las mismas que creaba la V2). */
+    public static final List<String> CATEGORIAS_DE_SERIE =
+            List.of("Comida", "Vivienda", "Transporte", "Ocio", "Suscripciones", "Nómina", "Otros");
 
     private final CategoriaRepository repository;
     private final MovimientoRepository movimientoRepository;
@@ -25,30 +29,30 @@ public class CategoriaService {
         this.pagoRecurrenteRepository = pagoRecurrenteRepository;
     }
 
-    public List<CategoriaResponse> listar() {
-        return repository.findAllByOrderByNombreAsc().stream()
+    public List<CategoriaResponse> listar(Long usuarioId) {
+        return repository.findByUsuarioIdOrderByNombreAsc(usuarioId).stream()
                 .map(CategoriaResponse::desde)
                 .toList();
     }
 
-    public CategoriaResponse obtener(Long id) {
-        return CategoriaResponse.desde(buscar(id));
+    public CategoriaResponse obtener(Long usuarioId, Long id) {
+        return CategoriaResponse.desde(buscar(usuarioId, id));
     }
 
     @Transactional
-    public CategoriaResponse crear(CategoriaRequest datos) {
+    public CategoriaResponse crear(Long usuarioId, CategoriaRequest datos) {
         String nombre = datos.nombre().trim();
-        if (repository.existsByNombreIgnoreCase(nombre)) {
+        if (repository.existsByUsuarioIdAndNombreIgnoreCase(usuarioId, nombre)) {
             throw new ConflictoException("Ya existe una categoría llamada " + nombre);
         }
-        return CategoriaResponse.desde(repository.save(new Categoria(nombre)));
+        return CategoriaResponse.desde(repository.save(new Categoria(usuarioId, nombre)));
     }
 
     @Transactional
-    public CategoriaResponse actualizar(Long id, CategoriaRequest datos) {
-        Categoria categoria = buscar(id);
+    public CategoriaResponse actualizar(Long usuarioId, Long id, CategoriaRequest datos) {
+        Categoria categoria = buscar(usuarioId, id);
         String nombre = datos.nombre().trim();
-        if (repository.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
+        if (repository.existsByUsuarioIdAndNombreIgnoreCaseAndIdNot(usuarioId, nombre, id)) {
             throw new ConflictoException("Ya existe una categoría llamada " + nombre);
         }
         categoria.cambiarNombre(nombre);
@@ -56,8 +60,8 @@ public class CategoriaService {
     }
 
     @Transactional
-    public void borrar(Long id) {
-        Categoria categoria = buscar(id);
+    public void borrar(Long usuarioId, Long id) {
+        Categoria categoria = buscar(usuarioId, id);
         // No dejamos movimientos "huérfanos": si alguno la usa, no se puede borrar
         if (movimientoRepository.existsByCategoriaId(id)) {
             throw new ConflictoException("No se puede borrar la categoría " + categoria.getNombre()
@@ -70,20 +74,29 @@ public class CategoriaService {
         repository.delete(categoria);
     }
 
+    /** Si el usuario todavía no tiene ninguna categoría, le creamos las de serie. */
+    @Transactional
+    public void crearLasDeSerieSiNoTiene(Long usuarioId) {
+        if (repository.countByUsuarioId(usuarioId) == 0) {
+            CATEGORIAS_DE_SERIE.forEach(nombre -> repository.save(new Categoria(usuarioId, nombre)));
+        }
+    }
+
     /**
      * Para cuando un movimiento o un pago quiere ponerse una categoría.
-     * Sin categoría → null. Con una que no existe → error 400 en el campo "categoriaId".
+     * Sin categoría → null. Con una que no existe (o que es de otro usuario) → error 400 en "categoriaId".
      */
-    public Categoria buscarParaAsignar(Long categoriaId) {
+    public Categoria buscarParaAsignar(Long usuarioId, Long categoriaId) {
         if (categoriaId == null) {
             return null;
         }
-        return repository.findById(categoriaId)
+        return repository.findByIdAndUsuarioId(categoriaId, usuarioId)
                 .orElseThrow(() -> new CampoNoValidoException("categoriaId",
                         "No existe ninguna categoría con id " + categoriaId));
     }
 
-    private Categoria buscar(Long id) {
-        return repository.findById(id).orElseThrow(() -> new CategoriaNoEncontradaException(id));
+    /** Si no existe O es de otro usuario → 404. */
+    private Categoria buscar(Long usuarioId, Long id) {
+        return repository.findByIdAndUsuarioId(id, usuarioId).orElseThrow(() -> new CategoriaNoEncontradaException(id));
     }
 }

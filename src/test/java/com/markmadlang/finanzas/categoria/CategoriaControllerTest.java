@@ -47,6 +47,9 @@ class CategoriaControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private CategoriaRepository repository;
 
     @Autowired
@@ -61,7 +64,7 @@ class CategoriaControllerTest {
     }
 
     private Long idDe(String nombre) {
-        return repository.findByNombreIgnoreCase(nombre).orElseThrow().getId();
+        return repository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), nombre).orElseThrow().getId();
     }
 
     private String json(String nombre) {
@@ -156,8 +159,8 @@ class CategoriaControllerTest {
 
     @Test
     void borrarCategoriaEnUsoDevuelve409() throws Exception {
-        Categoria comida = repository.findByNombreIgnoreCase("Comida").orElseThrow();
-        movimientoRepository.save(new Movimiento(TipoMovimiento.GASTO, new BigDecimal("10.00"),
+        Categoria comida = repository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), "Comida").orElseThrow();
+        movimientoRepository.save(new Movimiento(usuario.id(), TipoMovimiento.GASTO, new BigDecimal("10.00"),
                 LocalDate.of(2026, 11, 10), "Pan", comida));
 
         mockMvc.perform(delete(URL + "/" + comida.getId()))
@@ -170,8 +173,8 @@ class CategoriaControllerTest {
 
     @Test
     void borrarCategoriaUsadaPorUnPagoRecurrenteDevuelve409() throws Exception {
-        Categoria suscripciones = repository.findByNombreIgnoreCase("Suscripciones").orElseThrow();
-        pagoRecurrenteRepository.save(new PagoRecurrente("Netflix", TipoMovimiento.GASTO, new BigDecimal("12.99"),
+        Categoria suscripciones = repository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), "Suscripciones").orElseThrow();
+        pagoRecurrenteRepository.save(new PagoRecurrente(usuario.id(), "Netflix", TipoMovimiento.GASTO, new BigDecimal("12.99"),
                 Frecuencia.MENSUAL, LocalDate.of(2026, 1, 1), true, suscripciones));
 
         mockMvc.perform(delete(URL + "/" + suscripciones.getId()))

@@ -16,14 +16,20 @@ public class Categoria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    // De quién es (el id del usuario). Solo puede ser null en los datos de antes de que existieran usuarios.
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
+    // Único para cada usuario (sin mirar mayúsculas): lo comprueba CategoriaService
+    @Column(nullable = false, length = 50)
     private String nombre;
 
     /** JPA necesita un constructor vacío. */
     protected Categoria() {
     }
 
-    public Categoria(String nombre) {
+    public Categoria(Long usuarioId, String nombre) {
+        this.usuarioId = usuarioId;
         this.nombre = nombre;
     }
 
@@ -33,6 +39,10 @@ public class Categoria {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
     }
 
     public String getNombre() {

@@ -19,6 +19,10 @@ public class SaldoBanco {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // De quién es (el id del usuario). Solo puede ser null en los datos de antes de que existieran usuarios.
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     @Column(nullable = false)
     private LocalDate fecha;
 
@@ -29,13 +33,18 @@ public class SaldoBanco {
     protected SaldoBanco() {
     }
 
-    public SaldoBanco(LocalDate fecha, BigDecimal importe) {
+    public SaldoBanco(Long usuarioId, LocalDate fecha, BigDecimal importe) {
+        this.usuarioId = usuarioId;
         this.fecha = fecha;
         this.importe = importe.setScale(2);
     }
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
     }
 
     public LocalDate getFecha() {

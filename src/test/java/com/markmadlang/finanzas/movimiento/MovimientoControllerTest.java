@@ -40,6 +40,9 @@ class MovimientoControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private MovimientoRepository repository;
 
     @Autowired
@@ -51,12 +54,12 @@ class MovimientoControllerTest {
     }
 
     private Movimiento guardar(TipoMovimiento tipo, String importe, String fecha, String descripcion) {
-        return repository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha), descripcion, null));
+        return repository.save(new Movimiento(usuario.id(), tipo, new BigDecimal(importe), LocalDate.parse(fecha), descripcion, null));
     }
 
     /** Busca una de las categorías que crea la migración V2. */
     private Categoria categoria(String nombre) {
-        return categoriaRepository.findByNombreIgnoreCase(nombre).orElseThrow();
+        return categoriaRepository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), nombre).orElseThrow();
     }
 
     @Test
@@ -96,7 +99,7 @@ class MovimientoControllerTest {
 
     @Test
     void listarIncluyeLaCategoria() throws Exception {
-        repository.save(new Movimiento(TipoMovimiento.INGRESO, new BigDecimal("1500.00"),
+        repository.save(new Movimiento(usuario.id(), TipoMovimiento.INGRESO, new BigDecimal("1500.00"),
                 LocalDate.parse("2026-11-01"), "Nómina", categoria("Nómina")));
 
         mockMvc.perform(get(URL))

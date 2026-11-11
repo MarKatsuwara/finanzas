@@ -37,6 +37,9 @@ class ResumenControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private MovimientoRepository movimientoRepository;
 
     @Autowired
@@ -48,11 +51,11 @@ class ResumenControllerTest {
     }
 
     private Categoria categoria(String nombre) {
-        return categoriaRepository.findByNombreIgnoreCase(nombre).orElseThrow();
+        return categoriaRepository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), nombre).orElseThrow();
     }
 
     private void apuntar(TipoMovimiento tipo, String importe, String fecha, String descripcion, Categoria categoria) {
-        movimientoRepository.save(new Movimiento(tipo, new BigDecimal(importe), LocalDate.parse(fecha),
+        movimientoRepository.save(new Movimiento(usuario.id(), tipo, new BigDecimal(importe), LocalDate.parse(fecha),
                 descripcion, categoria));
     }
 

@@ -42,13 +42,16 @@ class PagoRecurrenteControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario; // los datos de prueba se guardan a su nombre
+
+    @Autowired
     private PagoRecurrenteRepository repository;
 
     @Autowired
     private CategoriaRepository categoriaRepository;
 
     private PagoRecurrente guardar(String descripcion, String importe, Frecuencia frecuencia, boolean activo) {
-        return repository.save(new PagoRecurrente(descripcion, TipoMovimiento.GASTO, new BigDecimal(importe),
+        return repository.save(new PagoRecurrente(usuario.id(), descripcion, TipoMovimiento.GASTO, new BigDecimal(importe),
                 frecuencia, LocalDate.of(2026, 1, 1), activo, null));
     }
 
@@ -74,7 +77,7 @@ class PagoRecurrenteControllerTest {
 
     @Test
     void crearConCategoriaDevuelveLaCategoria() throws Exception {
-        Long id = categoriaRepository.findByNombreIgnoreCase("Suscripciones").orElseThrow().getId();
+        Long id = categoriaRepository.findByUsuarioIdAndNombreIgnoreCase(usuario.id(), "Suscripciones").orElseThrow().getId();
         String json = """
                 {"descripcion": "Netflix", "tipo": "GASTO", "importe": 12.99,
                  "frecuencia": "MENSUAL", "fechaInicio": "2026-03-15", "categoriaId": %d}
@@ -275,7 +278,7 @@ class PagoRecurrenteControllerTest {
 
     private void guardarConInicio(String descripcion, String importe, Frecuencia frecuencia,
                                   LocalDate inicio, boolean activo) {
-        repository.save(new PagoRecurrente(descripcion, TipoMovimiento.GASTO, new BigDecimal(importe),
+        repository.save(new PagoRecurrente(usuario.id(), descripcion, TipoMovimiento.GASTO, new BigDecimal(importe),
                 frecuencia, inicio, activo, null));
     }
 

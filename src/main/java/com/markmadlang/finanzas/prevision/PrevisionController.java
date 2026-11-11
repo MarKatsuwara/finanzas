@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.prevision;
 
+import com.markmadlang.finanzas.seguridad.UsuarioId;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ public class PrevisionController {
 
     /** ¿Cómo voy a acabar este mes? */
     @GetMapping
-    public PrevisionResponse prevision() {
-        return service.prevision();
+    public PrevisionResponse prevision(@UsuarioId Long usuarioId) {
+        return service.prevision(usuarioId);
     }
 }

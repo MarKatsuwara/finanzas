@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.resumen;
 
+import com.markmadlang.finanzas.seguridad.UsuarioId;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +27,8 @@ public class ResumenController {
      */
     @GetMapping
     public ResumenMensualResponse resumenDelMes(
+            @UsuarioId Long usuarioId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth mes) {
-        return service.resumenDelMes(mes != null ? mes : YearMonth.now());
+        return service.resumenDelMes(usuarioId, mes != null ? mes : YearMonth.now());
     }
 }

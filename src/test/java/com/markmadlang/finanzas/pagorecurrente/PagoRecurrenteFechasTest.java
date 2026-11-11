@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PagoRecurrenteFechasTest {
 
     private static PagoRecurrente pago(Frecuencia frecuencia, LocalDate inicio) {
-        return new PagoRecurrente("Prueba", TipoMovimiento.GASTO, BigDecimal.TEN, frecuencia, inicio, true, null);
+        return new PagoRecurrente(1L, "Prueba", TipoMovimiento.GASTO, BigDecimal.TEN, frecuencia, inicio, true, null);
     }
 
     private static LocalDate fecha(int anio, int mes, int dia) {
@@ -78,7 +78,7 @@ class PagoRecurrenteFechasTest {
 
     @Test
     void cadaCuatroSemanasSonTreceVecesAlAnio() {
-        PagoRecurrente gimnasio = new PagoRecurrente("Gimnasio", TipoMovimiento.GASTO, new BigDecimal("30.00"),
+        PagoRecurrente gimnasio = new PagoRecurrente(1L, "Gimnasio", TipoMovimiento.GASTO, new BigDecimal("30.00"),
                 Frecuencia.CADA_4_SEMANAS, fecha(2026, 1, 5), true, null);
 
         assertThat(gimnasio.fechasEntre(fecha(2026, 1, 5), fecha(2027, 1, 3))).hasSize(13);
@@ -130,7 +130,7 @@ class PagoRecurrenteFechasTest {
 
     @Test
     void importeMensualRepartePorMesesYRedondea() {
-        PagoRecurrente semestral = new PagoRecurrente("Matrícula", TipoMovimiento.GASTO, new BigDecimal("100.00"),
+        PagoRecurrente semestral = new PagoRecurrente(1L, "Matrícula", TipoMovimiento.GASTO, new BigDecimal("100.00"),
                 Frecuencia.SEMESTRAL, fecha(2026, 1, 1), true, null);
 
         assertThat(semestral.importeMensual()).isEqualByComparingTo("16.67"); // 200 / 12 = 16,666...

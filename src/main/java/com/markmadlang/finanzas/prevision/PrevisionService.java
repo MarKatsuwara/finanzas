@@ -34,21 +34,21 @@ public class PrevisionService {
         this.reloj = reloj;
     }
 
-    /** Previsión del mes actual, según el reloj de la app. */
-    public PrevisionResponse prevision() {
-        return prevision(LocalDate.now(reloj));
+    /** Previsión del mes actual de un usuario, según el reloj de la app. */
+    public PrevisionResponse prevision(Long usuarioId) {
+        return prevision(usuarioId, LocalDate.now(reloj));
     }
 
     /** Previsión del mes de "hoy", como si hoy fuera esa fecha. */
-    public PrevisionResponse prevision(LocalDate hoy) {
+    public PrevisionResponse prevision(Long usuarioId, LocalDate hoy) {
         YearMonth mes = YearMonth.from(hoy);
 
         // 1. Lo que ya has apuntado este mes
-        ResumenMensualResponse resumen = resumenService.resumenDelMes(mes);
+        ResumenMensualResponse resumen = resumenService.resumenDelMes(usuarioId, mes);
 
         // 2. Lo que falta: pagos recurrentes de MAÑANA a fin de mes.
         //    (Lo de hoy no cuenta: se supone que ya lo has apuntado como movimiento.)
-        List<ProximoPagoResponse> pendientes = pagosPendientes(hoy.plusDays(1), mes.atEndOfMonth());
+        List<ProximoPagoResponse> pendientes = pagosPendientes(usuarioId, hoy.plusDays(1), mes.atEndOfMonth());
         BigDecimal ingresosPendientes = sumar(pendientes, TipoMovimiento.INGRESO);
         BigDecimal gastosPendientes = sumar(pendientes, TipoMovimiento.GASTO);
 
@@ -64,12 +64,12 @@ public class PrevisionService {
                 saldoPrevisto, numerosRojos, mensaje(saldoPrevisto), pendientes);
     }
 
-    private List<ProximoPagoResponse> pagosPendientes(LocalDate desde, LocalDate hasta) {
+    private List<ProximoPagoResponse> pagosPendientes(Long usuarioId, LocalDate desde, LocalDate hasta) {
         if (desde.isAfter(hasta)) {
             return List.of(); // hoy es el último día del mes: ya no queda nada
         }
         int dias = (int) ChronoUnit.DAYS.between(desde, hasta) + 1; // +1 porque los dos días cuentan
-        return pagoRecurrenteService.proximos(desde, dias);
+        return pagoRecurrenteService.proximos(usuarioId, desde, dias);
     }
 
     private BigDecimal sumar(List<ProximoPagoResponse> pagos, TipoMovimiento tipo) {

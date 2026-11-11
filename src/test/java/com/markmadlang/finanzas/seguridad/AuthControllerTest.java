@@ -4,7 +4,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.markmadlang.finanzas.GoogleDePrueba;
 import com.markmadlang.finanzas.usuario.UsuarioRepository;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +17,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -35,10 +35,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests de entrar con Google y de la seguridad de la API.
  * Aquí NO importamos SesionDePrueba: las peticiones van sin pulsera, salvo que se la pongamos a mano.
+ * @Transactional deshace todo al acabar cada test (también los usuarios creados).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(GoogleDePrueba.class)
+@Transactional
 class AuthControllerTest {
 
     @Autowired
@@ -49,11 +51,6 @@ class AuthControllerTest {
 
     @Autowired
     private JwtEncoder codificador;
-
-    @BeforeEach
-    void limpiar() {
-        usuarioRepository.deleteAll();
-    }
 
     /** Entra con un carné de Google y devuelve la pulsera que da la API. */
     private String entrar(String carne) throws Exception {

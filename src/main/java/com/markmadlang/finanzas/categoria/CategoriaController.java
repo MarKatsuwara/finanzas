@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.categoria;
 
+import com.markmadlang.finanzas.seguridad.UsuarioId;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,29 +27,30 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public List<CategoriaResponse> listar() {
-        return service.listar();
+    public List<CategoriaResponse> listar(@UsuarioId Long usuarioId) {
+        return service.listar(usuarioId);
     }
 
     @GetMapping("/{id}")
-    public CategoriaResponse obtener(@PathVariable Long id) {
-        return service.obtener(id);
+    public CategoriaResponse obtener(@UsuarioId Long usuarioId, @PathVariable Long id) {
+        return service.obtener(usuarioId, id);
     }
 
     @PostMapping
-    public ResponseEntity<CategoriaResponse> crear(@Valid @RequestBody CategoriaRequest datos) {
-        CategoriaResponse creada = service.crear(datos);
+    public ResponseEntity<CategoriaResponse> crear(@UsuarioId Long usuarioId, @Valid @RequestBody CategoriaRequest datos) {
+        CategoriaResponse creada = service.crear(usuarioId, datos);
         return ResponseEntity.created(URI.create("/api/categorias/" + creada.id())).body(creada);
     }
 
     @PutMapping("/{id}")
-    public CategoriaResponse actualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequest datos) {
-        return service.actualizar(id, datos);
+    public CategoriaResponse actualizar(@UsuarioId Long usuarioId, @PathVariable Long id,
+                                        @Valid @RequestBody CategoriaRequest datos) {
+        return service.actualizar(usuarioId, id, datos);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> borrar(@PathVariable Long id) {
-        service.borrar(id);
+    public ResponseEntity<Void> borrar(@UsuarioId Long usuarioId, @PathVariable Long id) {
+        service.borrar(usuarioId, id);
         return ResponseEntity.noContent().build();
     }
 }
