@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Frecuencia, type PagoRecurrente } from '../api'
+import { avisar } from '../avisos'
+import { avisarCambio } from '../cambios'
 import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { aproximarAlMes, FRECUENCIAS } from '../frecuencias'
 import { useDatos } from '../useDatos'
@@ -7,17 +9,18 @@ import { useDatos } from '../useDatos'
 type Tipo = 'GASTO' | 'INGRESO'
 
 interface Props {
-  onAnadido: () => void                 // avisa de que se ha guardado algo (para recargar la lista)
   editando?: PagoRecurrente | null      // si viene, el formulario sirve para MODIFICAR ese fijo
-  onTerminarEdicion?: () => void        // al guardar los cambios o pulsar Cancelar
+  onTerminarEdicion?: () => void        // al guardar los cambios, borrar o pulsar Cancelar (en la hoja: la cierra)
+  enHoja?: boolean                      // dentro de la hoja que sube desde abajo: sin tarjeta alrededor
 }
 
 /**
  * El formulario para añadir un gasto o ingreso fijo.
  * Si le pasas "editando", se rellena con ese fijo y al guardar lo MODIFICA (PUT).
- * (GastosFijos.tsx le pone una "key" distinta para cada fijo, igual que en Movimientos.)
+ * (Quien lo usa le pone una "key" distinta para cada fijo, igual que en Movimientos.)
+ * Al guardar o borrar llama a avisarCambio(): así todas las tarjetas se recargan solas.
  */
-export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }: Props) {
+export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = false }: Props) {
   const categorias = useDatos<Categoria[]>('/api/categorias')
 
   const [tipo, setTipo] = useState<Tipo>(editando?.tipo ?? 'GASTO')
@@ -30,6 +33,7 @@ export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const [confirmandoBorrar, setConfirmandoBorrar] = useState(false)
 
   // Mientras escribes, te dice lo que supone: al mes (o al año, si ya es mensual)
   const cantidad = leerImporte(importe)
@@ -62,17 +66,23 @@ export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }
     try {
       if (editando) {
         // Modificar: se envía todo, y "activo" se queda como estaba (eso se cambia con el interruptor)
-        await enviar<PagoRecurrente>(`/api/pagos-recurrentes/${editando.id}`, 'PUT', { ...datos, activo: editando.activo })
-        onAnadido()
+        const guardado = await enviar<PagoRecurrente>(`/api/pagos-recurrentes/${editando.id}`, 'PUT', { ...datos, activo: editando.activo })
+        avisarCambio()
+        avisar(`Guardado: ${guardado.descripcion}`)
         onTerminarEdicion?.()
         return
       }
       const nuevo = await enviar<PagoRecurrente>('/api/pagos-recurrentes', 'POST', datos)
+      avisarCambio()
+      if (enHoja) {
+        avisar(`Añadido: ${nuevo.descripcion}`)
+        onTerminarEdicion?.()
+        return
+      }
       setHecho(`Añadido: ${nuevo.descripcion}`)
       setDescripcion('')
       setImporte('')
       setCategoriaId('')
-      onAnadido()
     } catch (e) {
       setError(e instanceof ErrorApi ? e.message : editando ? 'No se han podido guardar los cambios' : 'No se ha podido añadir')
     } finally {
@@ -80,20 +90,25 @@ export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }
     }
   }
 
+  async function borrar() {
+    if (!editando) return
+    setError(null)
+    try {
+      await enviar(`/api/pagos-recurrentes/${editando.id}`, 'DELETE')
+      avisarCambio()
+      avisar(`Borrado: ${editando.descripcion}`)
+      onTerminarEdicion?.()
+    } catch (e) {
+      setError(e instanceof ErrorApi ? e.message : 'No se ha podido borrar')
+    }
+  }
+
   let textoBoton = tipo === 'GASTO' ? 'Añadir gasto fijo' : 'Añadir ingreso fijo'
   if (editando) textoBoton = 'Guardar cambios'
   if (guardando) textoBoton = editando ? 'Guardando…' : 'Añadiendo…'
 
-  return (
-    <section className={editando ? 'tarjeta tarjeta-editando' : 'tarjeta'} aria-labelledby="titulo-anadir-fijo">
-      <div className="tarjeta-cabecera">
-        <h2 id="titulo-anadir-fijo">{editando ? 'Editar fijo' : 'Añadir fijo'}</h2>
-        {editando && (
-          <button type="button" className="boton-texto" onClick={onTerminarEdicion}>Cancelar</button>
-        )}
-      </div>
-
-      <form className="formulario-vertical" onSubmit={anadir}>
+  const formulario = (
+      <form className={enHoja ? 'formulario-vertical formulario-hoja' : 'formulario-vertical'} onSubmit={anadir}>
         <div className="segmentado" role="group" aria-label="Tipo">
           <button type="button" aria-pressed={tipo === 'GASTO'} onClick={() => setTipo('GASTO')}>Gasto</button>
           <button type="button" aria-pressed={tipo === 'INGRESO'} onClick={() => setTipo('INGRESO')}>Ingreso</button>
@@ -107,7 +122,7 @@ export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }
             value={descripcion}
             maxLength={255}
             onChange={(e) => setDescripcion(e.target.value)}
-            autoFocus={editando !== null} // al pulsar Editar, el cursor salta aquí (y la página baja hasta el formulario)
+            autoFocus={editando !== null || enHoja} // al abrir, el cursor salta aquí (y la página baja hasta el formulario)
           />
         </div>
 
@@ -164,7 +179,38 @@ export function FormularioFijo({ onAnadido, editando = null, onTerminarEdicion }
 
         {error && <p className="campo-error" role="alert">{error}</p>}
         {hecho && !error && <p className="etiqueta" role="status">{hecho}</p>}
+
+        {/* Borrar, solo al editar dentro de la hoja (en el ordenador ya está en la lista) */}
+        {enHoja && editando && (
+          <div className="hoja-borrar">
+            {confirmandoBorrar ? (
+              <span className="confirmar">
+                ¿Borrar «{editando.descripcion}»?{' '}
+                <button type="button" className="boton-texto boton-peligro" onClick={borrar}>Sí, borrar</button>
+                {' · '}
+                <button type="button" className="boton-texto" onClick={() => setConfirmandoBorrar(false)}>No</button>
+              </span>
+            ) : (
+              <button type="button" className="boton-texto boton-peligro" onClick={() => setConfirmandoBorrar(true)}>
+                Borrar fijo
+              </button>
+            )}
+          </div>
+        )}
       </form>
+  )
+
+  if (enHoja) return formulario
+
+  return (
+    <section className={editando ? 'tarjeta tarjeta-editando' : 'tarjeta'} aria-labelledby="titulo-anadir-fijo">
+      <div className="tarjeta-cabecera">
+        <h2 id="titulo-anadir-fijo">{editando ? 'Editar fijo' : 'Añadir fijo'}</h2>
+        {editando && (
+          <button type="button" className="boton-texto" onClick={onTerminarEdicion}>Cancelar</button>
+        )}
+      </div>
+      {formulario}
     </section>
   )
 }

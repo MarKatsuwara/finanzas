@@ -5,8 +5,8 @@ import { ChipCategoria } from './ChipCategoria'
 import { ErrorCarga } from './ErrorCarga'
 
 /** En qué se te ha ido el dinero este mes y de dónde ha venido, por categorías. */
-export function TarjetaCategorias({ mes, version }: { mes: string; version: number }) {
-  const { datos, error, cargando, recargar } = useDatos<ResumenMes>(`/api/resumen?mes=${mes}`, version)
+export function TarjetaCategorias({ mes }: { mes: string }) {
+  const { datos, error, cargando, recargar } = useDatos<ResumenMes>(`/api/resumen?mes=${mes}`)
 
   return (
     <section className="tarjeta" aria-labelledby="titulo-categorias">

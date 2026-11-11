@@ -5,6 +5,7 @@ import { TarjetaMes } from '../componentes/TarjetaMes'
 import { TarjetaProximos } from '../componentes/TarjetaProximos'
 import { TarjetaSaldo } from '../componentes/TarjetaSaldo'
 import { fechaLarga, hoyIso } from '../formato'
+import { abrirHoja } from '../hojas'
 import { useDatos } from '../useDatos'
 
 /**
@@ -29,8 +30,10 @@ export function Inicio() {
           {/* La primera letra en mayúscula: "Martes, 10 de noviembre" */}
           <p>{hoy.charAt(0).toUpperCase() + hoy.slice(1)}</p>
         </div>
-        {/* Lo que más se hace en la app, a un clic */}
-        <a className="boton boton-principal" href="#movimientos">Apuntar movimiento</a>
+        {/* Lo que más se hace en la app, a un clic (en el móvil no se ve: está el "+" de la barra de abajo) */}
+        <button type="button" className="boton boton-principal solo-escritorio" onClick={() => abrirHoja({ tipo: 'movimiento' })}>
+          Apuntar movimiento
+        </button>
       </div>
 
       <div className="inicio">

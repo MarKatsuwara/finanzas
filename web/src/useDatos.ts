@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ErrorApi, pedir } from './api'
+import { useCambios } from './cambios'
 
 /**
  * Un "hook" (una función especial de React) que pide datos a la API
@@ -10,9 +11,11 @@ import { ErrorApi, pedir } from './api'
  * Y nos da "recargar" para volver a pedirlos (por ejemplo, después de guardar algo).
  *
  * "version" es opcional: cada vez que cambia, se vuelven a pedir los datos.
- * Sirve para que varias tarjetas se actualicen a la vez cuando algo cambia.
+ * Además, se vuelven a pedir solos cada vez que se guarda o se borra algo en cualquier
+ * parte de la app (avisarCambio() de cambios.ts), así todo lo que ves está siempre al día.
  */
 export function useDatos<T>(ruta: string, version = 0) {
+  const cambios = useCambios()
   const [datos, setDatos] = useState<T | null>(null)
   const [error, setError] = useState<ErrorApi | null>(null)
   const [cargando, setCargando] = useState(true)
@@ -30,10 +33,10 @@ export function useDatos<T>(ruta: string, version = 0) {
     }
   }, [ruta])
 
-  // useEffect: "cuando aparezca el componente (o cambie la ruta), pide los datos"
+  // useEffect: "cuando aparezca el componente (o cambie la ruta, o se guarde algo), pide los datos"
   useEffect(() => {
     recargar()
-  }, [recargar, version])
+  }, [recargar, version, cambios])
 
   return { datos, error, cargando, recargar }
 }
@@ -44,6 +47,7 @@ export function useDatos<T>(ruta: string, version = 0) {
  * Si una sola falla, se muestra el error.
  */
 export function useVariosDatos<T>(rutas: string[], version = 0) {
+  const cambios = useCambios()
   const [datos, setDatos] = useState<T[] | null>(null)
   const [error, setError] = useState<ErrorApi | null>(null)
   const [cargando, setCargando] = useState(true)
@@ -67,7 +71,7 @@ export function useVariosDatos<T>(rutas: string[], version = 0) {
 
   useEffect(() => {
     recargar()
-  }, [recargar, version])
+  }, [recargar, version, cambios])
 
   return { datos, error, cargando, recargar }
 }

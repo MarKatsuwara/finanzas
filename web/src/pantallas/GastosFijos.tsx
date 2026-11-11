@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { PagoRecurrente } from '../api'
+import { abrirHoja } from '../hojas'
+import { useEsMovil } from '../movil'
 import { ErrorCarga } from '../componentes/ErrorCarga'
 import { FormularioFijo } from '../componentes/FormularioFijo'
 import { ListaFijos } from '../componentes/ListaFijos'
@@ -12,12 +14,13 @@ import { useDatos } from '../useDatos'
  *  2. La lista (con interruptor y borrar) + el formulario para añadir
  */
 export function GastosFijos() {
-  const [version, setVersion] = useState(0)
-  const actualizar = () => setVersion((v) => v + 1)
-  const [editando, setEditando] = useState<PagoRecurrente | null>(null) // el que se está modificando
+  const [editando, setEditando] = useState<PagoRecurrente | null>(null) // el que se está modificando (en el ordenador)
+  const esMovil = useEsMovil()
+  // Pulsar un fijo: en el móvil abre la hoja; en el ordenador rellena el formulario de al lado
+  const editar = (f: PagoRecurrente) => (esMovil ? abrirHoja({ tipo: 'fijo', editando: f }) : setEditando(f))
 
   // Se piden UNA vez y se pasan al resumen y a la lista, así siempre cuadran
-  const { datos, error, cargando, recargar } = useDatos<PagoRecurrente[]>('/api/pagos-recurrentes', version)
+  const { datos, error, cargando, recargar } = useDatos<PagoRecurrente[]>('/api/pagos-recurrentes')
 
   // Al formulario le pasamos SIEMPRE la versión más reciente del que editas: si mientras tanto
   // le cambias el interruptor, al guardar no se pierde (y si ya no existe, el formulario vuelve a "Añadir").
@@ -48,17 +51,19 @@ export function GastosFijos() {
 
         <div className="movimientos-fila">
           {datos ? (
-            <ListaFijos fijos={datos} onCambio={actualizar} onEditar={setEditando} editandoId={editandoActual?.id ?? null} />
+            <ListaFijos fijos={datos} onEditar={editar} editandoId={editandoActual?.id ?? null} />
           ) : (
             <div />
           )}
-          {/* key: cada vez que cambias de fijo, el formulario se crea de nuevo con sus datos */}
-          <FormularioFijo
-            key={editandoActual?.id ?? 'nuevo'}
-            editando={editandoActual}
-            onAnadido={actualizar}
-            onTerminarEdicion={() => setEditando(null)}
-          />
+          {/* key: cada vez que cambias de fijo, el formulario se crea de nuevo con sus datos.
+              En el móvil no se ve: se añade con el "+" de la barra de abajo */}
+          {!esMovil && (
+            <FormularioFijo
+              key={editandoActual?.id ?? 'nuevo'}
+              editando={editandoActual}
+              onTerminarEdicion={() => setEditando(null)}
+            />
+          )}
         </div>
       </div>
     </>

@@ -9,19 +9,18 @@ const CUANTOS_MESES = 6
 
 interface Props {
   mes: string // el mes que estás viendo abajo en la lista (se marca en el gráfico)
-  version: number
   onElegir: (mes: string) => void
 }
 
 /** Lo que entró y lo que salió en cada uno de los últimos 6 meses, en barras. */
-export function GraficoMeses({ mes, version, onElegir }: Props) {
+export function GraficoMeses({ mes, onElegir }: Props) {
   // Los 6 meses, del más antiguo al actual: ["2026-06", ..., "2026-11"]
   const meses = useMemo(
     () => Array.from({ length: CUANTOS_MESES }, (_, n) => moverMes(mesActual(), n - (CUANTOS_MESES - 1))),
     [],
   )
   const rutas = useMemo(() => meses.map((m) => `/api/resumen?mes=${m}`), [meses])
-  const { datos, error, cargando, recargar } = useVariosDatos<ResumenMes>(rutas, version)
+  const { datos, error, cargando, recargar } = useVariosDatos<ResumenMes>(rutas)
 
   const hayAlgo = datos?.some((r) => r.totalIngresos > 0 || r.totalGastos > 0)
 

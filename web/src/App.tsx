@@ -1,7 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
+import { Avisos } from './componentes/Avisos'
 import { AvisoDespertando } from './componentes/AvisoDespertando'
+import { BarraInferior, type Destino } from './componentes/BarraInferior'
 import { CuentaUsuario } from './componentes/CuentaUsuario'
+import { HojaActual } from './componentes/HojaActual'
 import { SelectorTema } from './componentes/SelectorTema'
+import { cerrarHoja } from './hojas'
+import { prefiereMenosMovimiento } from './movil'
 import { Entrar } from './pantallas/Entrar'
 import { GastosFijos } from './pantallas/GastosFijos'
 import { Inicio } from './pantallas/Inicio'
@@ -12,10 +18,8 @@ import { alCambiarLaSesion, sesionActual } from './sesion'
 // =========================================================
 // Las pantallas de la app. Para añadir una nueva, se añade aquí.
 // =========================================================
-interface Pantalla {
-  id: string            // lo que sale en la dirección: #inicio
-  nombre: string        // lo que sale en el menú
-  icono: ReactNode
+interface Pantalla extends Destino {
+  // id: lo que sale en la dirección (#inicio); nombre: lo que sale en el menú; nombreCorto: en la barra de abajo
   contenido: ReactNode
 }
 
@@ -23,6 +27,7 @@ const PANTALLAS: Pantalla[] = [
   {
     id: 'inicio',
     nombre: 'Inicio',
+    nombreCorto: 'Inicio',
     icono: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
         <path d="M2.5 7 8 2.5 13.5 7v6.5h-4v-4h-3v4h-4z" strokeLinejoin="round" />
@@ -33,6 +38,7 @@ const PANTALLAS: Pantalla[] = [
   {
     id: 'movimientos',
     nombre: 'Movimientos',
+    nombreCorto: 'Movimientos',
     icono: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
         <path d="M5.5 4h8M5.5 8h8M5.5 12h8" strokeLinecap="round" />
@@ -46,6 +52,7 @@ const PANTALLAS: Pantalla[] = [
   {
     id: 'fijos',
     nombre: 'Gastos fijos',
+    nombreCorto: 'Fijos',
     icono: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
         <path d="M2.5 7a5.5 5.5 0 0 1 9.6-3.6M13.5 9a5.5 5.5 0 0 1-9.6 3.6" strokeLinecap="round" />
@@ -70,18 +77,28 @@ function pantallaDeLaDireccion(): Pantalla {
 export default function App() {
   const [actual, setActual] = useState(pantallaDeLaDireccion)
   const [enPrivacidad, setEnPrivacidad] = useState(esPrivacidad)
-  const [menuAbierto, setMenuAbierto] = useState(false)
   const [sesion, setSesion] = useState(sesionActual) // null = no has entrado
 
   // Cuando entras o sales (o caduca la pulsera), volvemos a mirar la sesión
   useEffect(() => alCambiarLaSesion(() => setSesion(sesionActual())), [])
 
-  // Cuando cambia la dirección (al pulsar un enlace del menú), cambiamos de pantalla
+  // Cuando cambia la dirección (al pulsar un enlace del menú), cambiamos de pantalla.
+  // Con "View Transitions" el navegador hace un fundido suave entre la pantalla vieja y la nueva
+  // (index.css: ::view-transition-...). Si el navegador no lo sabe hacer, cambia sin más.
   useEffect(() => {
     function alCambiar() {
-      setActual(pantallaDeLaDireccion())
-      setEnPrivacidad(esPrivacidad())
-      setMenuAbierto(false)
+      const cambiar = () => {
+        setActual(pantallaDeLaDireccion())
+        setEnPrivacidad(esPrivacidad())
+        cerrarHoja()
+        window.scrollTo(0, 0) // la pantalla nueva empieza arriba
+      }
+      if (document.startViewTransition && !prefiereMenosMovimiento()) {
+        // flushSync: que React pinte la pantalla nueva YA, dentro de la transición
+        document.startViewTransition(() => flushSync(cambiar))
+      } else {
+        cambiar()
+      }
     }
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
@@ -107,7 +124,7 @@ export default function App() {
   return (
     <div className="app">
       <AvisoDespertando />
-      <header className={menuAbierto ? 'menu abierto' : 'menu'}>
+      <header className="menu">
         <div className="marca">
           {/* El símbolo de la app: una pila de monedas */}
           <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -118,19 +135,7 @@ export default function App() {
           Finanzas
         </div>
 
-        {/* Solo se ve en el móvil */}
-        <button
-          className="boton-menu"
-          aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
-          aria-expanded={menuAbierto}
-          onClick={() => setMenuAbierto(!menuAbierto)}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-            {menuAbierto ? <path d="M5 5l10 10M15 5 5 15" /> : <path d="M3 6h14M3 10h14M3 14h14" />}
-          </svg>
-        </button>
-
-        {/* En el móvil, todo esto se abre con el botón del menú */}
+        {/* En el móvil, esto no se ve: lo sustituye la barra de abajo (BarraInferior) */}
         <div className="menu-cuerpo">
           <nav aria-label="Pantallas">
             {PANTALLAS.map((p) => (
@@ -152,6 +157,15 @@ export default function App() {
       </header>
 
       <main className="contenido">{enPrivacidad ? <Privacidad conSesion /> : actual.contenido}</main>
+
+      {/* Solo en el móvil (index.css la esconde en el ordenador) */}
+      <BarraInferior
+        destinos={PANTALLAS}
+        actual={enPrivacidad ? null : actual.id}
+        inicial={sesion.usuario.nombre.charAt(0).toUpperCase()}
+      />
+      <HojaActual usuario={sesion.usuario} />
+      <Avisos />
     </div>
   )
 }
