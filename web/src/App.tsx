@@ -1,8 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { CuentaUsuario } from './componentes/CuentaUsuario'
 import { SelectorTema } from './componentes/SelectorTema'
+import { Entrar } from './pantallas/Entrar'
 import { GastosFijos } from './pantallas/GastosFijos'
 import { Inicio } from './pantallas/Inicio'
 import { Movimientos } from './pantallas/Movimientos'
+import { alCambiarLaSesion, sesionActual } from './sesion'
 
 // =========================================================
 // Las pantallas de la app. Para añadir una nueva, se añade aquí.
@@ -60,6 +63,10 @@ function pantallaDeLaDireccion(): Pantalla {
 export default function App() {
   const [actual, setActual] = useState(pantallaDeLaDireccion)
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const [sesion, setSesion] = useState(sesionActual) // null = no has entrado
+
+  // Cuando entras o sales (o caduca la pulsera), volvemos a mirar la sesión
+  useEffect(() => alCambiarLaSesion(() => setSesion(sesionActual())), [])
 
   // Cuando cambia la dirección (al pulsar un enlace del menú), cambiamos de pantalla
   useEffect(() => {
@@ -70,6 +77,11 @@ export default function App() {
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
   }, [])
+
+  // Sin sesión, solo se ve la pantalla de entrar
+  if (!sesion) {
+    return <Entrar />
+  }
 
   return (
     <div className="app">
@@ -113,6 +125,7 @@ export default function App() {
           </nav>
 
           <SelectorTema />
+          <CuentaUsuario usuario={sesion.usuario} />
         </div>
       </header>
 

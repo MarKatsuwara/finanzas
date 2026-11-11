@@ -1,6 +1,10 @@
 // =========================================================
 // Todo lo que habla con la API en Java está en este archivo.
 // =========================================================
+import { cerrarSesion, guardarSesion, sesionActual, type Sesion } from './sesion'
+
+/** Donde se cambia el carné de Google por la pulsera de la API. */
+const RUTA_ENTRAR = '/api/auth/google'
 
 /** Un error que viene de la API, con su código (404, 400...) y su mensaje. */
 export class ErrorApi extends Error {
@@ -17,9 +21,16 @@ export class ErrorApi extends Error {
  * Si la API responde con error, lanza un ErrorApi con el mensaje que escribimos en Java.
  */
 async function peticion<T>(ruta: string, opciones?: RequestInit): Promise<T> {
+  // Si has entrado, cada petición lleva tu pulsera: "Authorization: Bearer <token>"
+  const cabeceras = new Headers(opciones?.headers)
+  const sesion = sesionActual()
+  if (sesion) {
+    cabeceras.set('Authorization', `Bearer ${sesion.token}`)
+  }
+
   let respuesta: Response
   try {
-    respuesta = await fetch(ruta, opciones)
+    respuesta = await fetch(ruta, { ...opciones, headers: cabeceras })
   } catch {
     // fetch solo falla así cuando no hay nadie al otro lado
     throw new ErrorApi(0, 'No se puede conectar con la API. ¿Está encendida en IntelliJ?')
@@ -28,6 +39,13 @@ async function peticion<T>(ruta: string, opciones?: RequestInit): Promise<T> {
   // La web y la API funcionan juntas, pero si la API está apagada el proxy de Vite responde 502/504
   if (respuesta.status === 502 || respuesta.status === 504) {
     throw new ErrorApi(0, 'No se puede conectar con la API. ¿Está encendida en IntelliJ?')
+  }
+
+  // 401 = la pulsera no vale (ha caducado). Cerramos la sesión y la app vuelve a la pantalla de entrar.
+  // (Menos al entrar con Google: ahí un 401 significa que el carné de Google no valía.)
+  if (respuesta.status === 401 && ruta !== RUTA_ENTRAR) {
+    cerrarSesion()
+    throw new ErrorApi(401, 'Tu sesión ha caducado. Vuelve a entrar.')
   }
 
   if (!respuesta.ok) {
@@ -46,6 +64,11 @@ async function peticion<T>(ruta: string, opciones?: RequestInit): Promise<T> {
 /** GET: pedir datos. */
 export function pedir<T>(ruta: string): Promise<T> {
   return peticion<T>(ruta)
+}
+
+/** Entra con el carné de Google: la API lo comprueba y nos da la pulsera, que guardamos. */
+export async function entrarConGoogle(credencial: string): Promise<void> {
+  guardarSesion(await enviar<Sesion>(RUTA_ENTRAR, 'POST', { credencial }))
 }
 
 /** POST, PUT o DELETE: enviar datos. */
