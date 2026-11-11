@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { PrevisionBanco } from '../api'
+import { GraficoSaldo } from '../componentes/GraficoSaldo'
 import { TarjetaMes } from '../componentes/TarjetaMes'
 import { TarjetaProximos } from '../componentes/TarjetaProximos'
 import { TarjetaSaldo } from '../componentes/TarjetaSaldo'
@@ -9,7 +10,8 @@ import { useDatos } from '../useDatos'
 /**
  * La pantalla de inicio. Responde a: "¿voy a quedarme sin dinero?"
  *  1. En el banco hoy (con el aviso)
- *  2. Próximos 30 días (cuánto te queda cada día) + Este mes
+ *  2. El gráfico de cómo irá tu saldo
+ *  3. Próximos 30 días (cuánto te queda cada día) + Este mes
  */
 export function Inicio() {
   // Cada vez que algo cambia (por ejemplo, cuadras el saldo), sumamos 1
@@ -33,6 +35,8 @@ export function Inicio() {
 
       <div className="inicio">
         <TarjetaSaldo version={version} prevision={prevision.datos} onCambio={() => setVersion(version + 1)} />
+
+        <GraficoSaldo {...prevision} />
 
         <div className="inicio-fila">
           <TarjetaProximos {...prevision} />

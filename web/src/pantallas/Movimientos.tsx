@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FormularioMovimiento } from '../componentes/FormularioMovimiento'
+import { GraficoMeses } from '../componentes/GraficoMeses'
 import { ListaMovimientos } from '../componentes/ListaMovimientos'
 import { TarjetaCategorias } from '../componentes/TarjetaCategorias'
 import { mesActual, moverMes, nombreMesYAnio } from '../formato'
@@ -7,7 +8,8 @@ import { mesActual, moverMes, nombreMesYAnio } from '../formato'
 /**
  * La pantalla de movimientos:
  *  1. Apuntar (lo que más se hace, arriba del todo)
- *  2. La lista del mes + en qué categorías se ha ido el dinero
+ *  2. El gráfico de los últimos 6 meses (al pulsar un mes, la lista salta a él)
+ *  3. La lista del mes + en qué categorías se ha ido el dinero
  */
 export function Movimientos() {
   const [mes, setMes] = useState(mesActual())
@@ -40,6 +42,8 @@ export function Movimientos() {
 
       <div className="inicio">
         <FormularioMovimiento onApuntado={actualizar} />
+
+        <GraficoMeses mes={mes} version={version} onElegir={setMes} />
 
         <div className="movimientos-fila">
           <ListaMovimientos mes={mes} version={version} onCambio={actualizar} />

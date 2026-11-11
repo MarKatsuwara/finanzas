@@ -108,3 +108,38 @@ export function sumar(cantidades: number[]): number {
   const centimos = cantidades.reduce((total, cantidad) => total + Math.round(cantidad * 100), 0)
   return centimos / 100
 }
+
+/** Cuántos días hay de una fecha a otra: diasEntre("2026-11-10", "2026-11-15") → 5 */
+export function diasEntre(desde: string, hasta: string): number {
+  const UN_DIA = 24 * 60 * 60 * 1000
+  const enUtc = (iso: string) => {
+    const [anio, mes, dia] = iso.split('-').map(Number)
+    return Date.UTC(anio, mes - 1, dia)
+  }
+  return Math.round((enUtc(hasta) - enUtc(desde)) / UN_DIA)
+}
+
+/** Suma días a una fecha: sumarDias("2026-11-30", 2) → "2026-12-02" */
+export function sumarDias(iso: string, dias: number): string {
+  const fecha = aFecha(iso)
+  fecha.setDate(fecha.getDate() + dias)
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
+}
+
+// Para los ejes de los gráficos: sin céntimos ("1.500 €")
+const EUROS_REDONDOS = new Intl.NumberFormat('es-ES', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+  useGrouping: 'always',
+})
+
+/** 1500 → "1.500 €" (sin céntimos, para los ejes de los gráficos) */
+export function eurosRedondos(cantidad: number): string {
+  return EUROS_REDONDOS.format(cantidad)
+}
+
+/** "2026-11" → "nov" (para debajo de las barras) */
+export function mesCorto(mesIso: string): string {
+  return aFecha(`${mesIso}-01`).toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')
+}

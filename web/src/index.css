@@ -52,6 +52,11 @@
   --tinte-6-bg: light-dark(#ffe8d9, #3a2216);  --tinte-6-ink: light-dark(#8a3b0a, #f5b48a);  /* naranja */
   --tinte-neutro-bg: light-dark(#eef1f4, #26282c);  --tinte-neutro-ink: light-dark(#3a3d40, #c9ccd0);
 
+  /* Gráficos: lo que entra (verde) y lo que sale (azul).
+     Comprobados para que se distingan también con daltonismo, en claro y en oscuro. */
+  --grafico-entra: light-dark(#2f7a45, #3ea466);
+  --grafico-sale:  light-dark(#1d5fd6, #5a8ce8);
+
   /* Formas y espacios */
   --radius-card: 20px;
   --radius-inner: 12px;
@@ -392,8 +397,8 @@ button, input, select { font: inherit; color: inherit; }
 /* Gastos por categoría: cada fila con su barrita */
 .ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 .ranking-fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 500; }
-.ranking-barra { display: block; height: 4px; margin-top: 8px; border-radius: 999px; background: var(--accent); }
-.ranking-barra-ingreso { background: var(--positive); }
+.ranking-barra { display: block; height: 6px; margin-top: 8px; border-radius: 999px; background: var(--grafico-sale); }
+.ranking-barra-ingreso { background: var(--grafico-entra); }
 .por-categoria { display: flex; flex-direction: column; gap: 28px; }
 .ranking-cabecera { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
 .ranking-cabecera h3 { font-size: var(--fs-body); font-weight: 600; }
@@ -536,6 +541,68 @@ a.boton { display: inline-flex; align-items: center; text-decoration: none; }
 .estado { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .estado p { max-width: 52ch; }
 .aviso-error { color: var(--pill-negative-ink); }
+
+/* =========================================================
+   7b. GRÁFICOS (dibujados con SVG)
+   ========================================================= */
+.grafico { position: relative; }
+.grafico svg { display: block; overflow: visible; touch-action: pan-y; } /* el dedo puede seguir bajando la página */
+.grafico svg:focus-visible { outline-offset: 6px; border-radius: 4px; }
+
+.grafico-rejilla { stroke: var(--rule); stroke-width: 1; }
+.grafico-cero { stroke: var(--control); stroke-width: 1; }
+.grafico-texto { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.grafico-texto-fuerte { fill: var(--text); font-weight: 600; font-size: 13px; }
+.grafico-linea { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-punto { stroke: var(--surface); stroke-width: 2; }
+.grafico-guia { stroke: var(--muted); stroke-width: 1; }
+.grafico-mes-elegido { fill: var(--raised); }
+.grafico-mes-zona { cursor: pointer; transition: opacity 0.15s; }
+
+/* La cajita que sale al pasar el ratón */
+.grafico-tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-inner);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  pointer-events: none; /* no "roba" el ratón al gráfico */
+}
+.grafico-tooltip[data-lado="derecha"]   { transform: translateX(12px); }
+.grafico-tooltip[data-lado="izquierda"] { transform: translateX(calc(-100% - 12px)); }
+.grafico-tooltip strong { font-size: var(--fs-body); font-weight: 600; }
+.grafico-tooltip-fila { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.grafico-tooltip-total { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--rule); font-weight: 500; }
+
+/* La leyenda: un cuadradito del color de cada barra */
+.leyenda { display: flex; gap: 16px; }
+.leyenda > span { display: inline-flex; align-items: center; }
+.leyenda-color { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
+.leyenda-raya { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+.leyenda-entra { background: var(--grafico-entra); }
+.leyenda-sale  { background: var(--grafico-sale); }
+
+/* Los meses de debajo de las barras (son botones) */
+.grafico-meses { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin-top: 6px; }
+.grafico-mes {
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.grafico-mes:hover { background: var(--hover); color: var(--text); }
+.grafico-mes[aria-pressed="true"] { color: var(--text); font-weight: 600; }
 
 /* =========================================================
    8. TABLET Y MÓVIL (pantallas de menos de 1000 px)
