@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.Limites;
 import com.markmadlang.finanzas.categoria.CategoriaService;
 import com.markmadlang.finanzas.error.CampoNoValidoException;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,14 @@ public class PagoRecurrenteService {
     private final PagoRecurrenteRepository repository;
     private final CategoriaService categoriaService;
     private final Clock reloj;
+    private final Limites limites;
 
-    public PagoRecurrenteService(PagoRecurrenteRepository repository, CategoriaService categoriaService, Clock reloj) {
+    public PagoRecurrenteService(PagoRecurrenteRepository repository, CategoriaService categoriaService, Clock reloj,
+                                 Limites limites) {
         this.repository = repository;
         this.categoriaService = categoriaService;
         this.reloj = reloj;
+        this.limites = limites;
     }
 
     public List<PagoRecurrenteResponse> listar(Long usuarioId) {
@@ -40,6 +44,7 @@ public class PagoRecurrenteService {
 
     @Transactional
     public PagoRecurrenteResponse crear(Long usuarioId, PagoRecurrenteRequest datos) {
+        limites.comprobarGastosFijos(repository.countByUsuarioId(usuarioId));
         boolean activo = datos.activo() == null || datos.activo(); // si no lo dicen, activo
         PagoRecurrente nuevo = new PagoRecurrente(usuarioId, datos.descripcion().trim(), datos.tipo(), datos.importe(),
                 datos.frecuencia(), datos.fechaInicio(), activo,

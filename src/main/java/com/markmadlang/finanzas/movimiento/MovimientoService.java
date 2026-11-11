@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.Limites;
 import com.markmadlang.finanzas.categoria.CategoriaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +19,13 @@ public class MovimientoService {
 
     private final MovimientoRepository repository;
     private final CategoriaService categoriaService;
+    private final Limites limites;
 
     // Spring nos pasa lo que necesitamos automáticamente (inyección de dependencias)
-    public MovimientoService(MovimientoRepository repository, CategoriaService categoriaService) {
+    public MovimientoService(MovimientoRepository repository, CategoriaService categoriaService, Limites limites) {
         this.repository = repository;
         this.categoriaService = categoriaService;
+        this.limites = limites;
     }
 
     public List<MovimientoResponse> listar(Long usuarioId) {
@@ -37,6 +40,7 @@ public class MovimientoService {
 
     @Transactional
     public MovimientoResponse crear(Long usuarioId, MovimientoRequest datos) {
+        limites.comprobarMovimientos(repository.countByUsuarioId(usuarioId));
         Movimiento nuevo = new Movimiento(usuarioId, datos.tipo(), datos.importe(), datos.fecha(),
                 datos.descripcion().trim(), categoriaService.buscarParaAsignar(usuarioId, datos.categoriaId()));
         return MovimientoResponse.desde(repository.save(nuevo));

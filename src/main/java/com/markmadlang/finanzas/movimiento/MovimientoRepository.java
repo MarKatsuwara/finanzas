@@ -35,6 +35,9 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     /** ¿Hay algún movimiento que use esta categoría? (las categorías ya son de un solo usuario) */
     boolean existsByCategoriaId(Long categoriaId);
 
+    /** Cuántos tiene un usuario (para el límite de Limites). */
+    long countByUsuarioId(Long usuarioId);
+
     /**
      * Suma los importes de un usuario entre dos fechas, agrupando por tipo (INGRESO/GASTO) y por categoría.
      * Es como este SQL:

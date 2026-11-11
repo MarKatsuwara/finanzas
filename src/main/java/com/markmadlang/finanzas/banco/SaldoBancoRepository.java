@@ -21,6 +21,9 @@ public interface SaldoBancoRepository extends JpaRepository<SaldoBanco, Long> {
     /** Todos los de un usuario, del más reciente al más antiguo. */
     List<SaldoBanco> findByUsuarioIdOrderByFechaDescIdDesc(Long usuarioId);
 
+    /** Cuántos tiene un usuario (para el límite de Limites). */
+    long countByUsuarioId(Long usuarioId);
+
     /** Los saldos "sin dueño" (de antes de que hubiera usuarios) pasan a ser de este usuario. */
     @Modifying(flushAutomatically = true)
     @Query("UPDATE SaldoBanco s SET s.usuarioId = :usuarioId WHERE s.usuarioId IS NULL")

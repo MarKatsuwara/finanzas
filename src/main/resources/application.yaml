@@ -17,6 +17,12 @@ spring:
     open-in-view: false
 
 finanzas:
+  # Cuántas cosas puede guardar cada usuario como mucho (ver Limites.java: para que nadie llene la base de datos)
+  limites:
+    movimientos: 20000
+    categorias: 100
+    gastos-fijos: 200
+    saldos: 5000
   jwt:
     # La clave secreta para firmar las sesiones. Va en una variable de entorno, NUNCA aquí.
     secreto: ${JWT_SECRET:}

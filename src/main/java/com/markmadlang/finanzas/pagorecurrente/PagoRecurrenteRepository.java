@@ -26,6 +26,9 @@ public interface PagoRecurrenteRepository extends JpaRepository<PagoRecurrente, 
     /** ¿Hay algún pago recurrente que use esta categoría? */
     boolean existsByCategoriaId(Long categoriaId);
 
+    /** Cuántos tiene un usuario (para el límite de Limites). */
+    long countByUsuarioId(Long usuarioId);
+
     /** Los pagos "sin dueño" (de antes de que hubiera usuarios) pasan a ser de este usuario. */
     @Modifying(flushAutomatically = true)
     @Query("UPDATE PagoRecurrente p SET p.usuarioId = :usuarioId WHERE p.usuarioId IS NULL")

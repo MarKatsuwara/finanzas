@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.categoria;
 
+import com.markmadlang.finanzas.Limites;
 import com.markmadlang.finanzas.error.CampoNoValidoException;
 import com.markmadlang.finanzas.error.ConflictoException;
 import com.markmadlang.finanzas.movimiento.MovimientoRepository;
@@ -21,12 +22,14 @@ public class CategoriaService {
     private final CategoriaRepository repository;
     private final MovimientoRepository movimientoRepository;
     private final PagoRecurrenteRepository pagoRecurrenteRepository;
+    private final Limites limites;
 
     public CategoriaService(CategoriaRepository repository, MovimientoRepository movimientoRepository,
-                            PagoRecurrenteRepository pagoRecurrenteRepository) {
+                            PagoRecurrenteRepository pagoRecurrenteRepository, Limites limites) {
         this.repository = repository;
         this.movimientoRepository = movimientoRepository;
         this.pagoRecurrenteRepository = pagoRecurrenteRepository;
+        this.limites = limites;
     }
 
     public List<CategoriaResponse> listar(Long usuarioId) {
@@ -45,6 +48,7 @@ public class CategoriaService {
         if (repository.existsByUsuarioIdAndNombreIgnoreCase(usuarioId, nombre)) {
             throw new ConflictoException("Ya existe una categoría llamada " + nombre);
         }
+        limites.comprobarCategorias(repository.countByUsuarioId(usuarioId));
         return CategoriaResponse.desde(repository.save(new Categoria(usuarioId, nombre)));
     }
 

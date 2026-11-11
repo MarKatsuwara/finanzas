@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.banco;
 
+import com.markmadlang.finanzas.Limites;
 import com.markmadlang.finanzas.banco.PrevisionBancoResponse.DiaPrevisto;
 import com.markmadlang.finanzas.banco.PrevisionBancoResponse.MovimientoPrevisto;
 import com.markmadlang.finanzas.error.CampoNoValidoException;
@@ -30,17 +31,20 @@ public class SaldoBancoService {
     private final MovimientoRepository movimientoRepository;
     private final PagoRecurrenteService pagoRecurrenteService;
     private final Clock reloj;
+    private final Limites limites;
 
     public SaldoBancoService(SaldoBancoRepository repository, MovimientoRepository movimientoRepository,
-                             PagoRecurrenteService pagoRecurrenteService, Clock reloj) {
+                             PagoRecurrenteService pagoRecurrenteService, Clock reloj, Limites limites) {
         this.repository = repository;
         this.movimientoRepository = movimientoRepository;
         this.pagoRecurrenteService = pagoRecurrenteService;
         this.reloj = reloj;
+        this.limites = limites;
     }
 
     @Transactional
     public SaldoApuntadoResponse apuntar(Long usuarioId, SaldoBancoRequest datos) {
+        limites.comprobarSaldos(repository.countByUsuarioId(usuarioId));
         return SaldoApuntadoResponse.desde(repository.save(new SaldoBanco(usuarioId, datos.fecha(), datos.importe())));
     }
 
