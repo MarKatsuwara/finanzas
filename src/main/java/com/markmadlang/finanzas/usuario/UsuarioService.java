@@ -70,6 +70,21 @@ public class UsuarioService {
         return nuevo;
     }
 
+    /**
+     * Borra la cuenta y TODO lo que ha apuntado (derecho al olvido).
+     * El orden importa: primero lo que usa categorías (movimientos y fijos), luego las categorías
+     * y al final el usuario. Si borráramos antes las categorías, la base de datos no nos dejaría.
+     */
+    @Transactional
+    public void borrar(Long id) {
+        Usuario usuario = buscar(id);
+        movimientoRepository.borrarTodosLosDe(id);
+        pagoRecurrenteRepository.borrarTodosLosDe(id);
+        saldoBancoRepository.borrarTodosLosDe(id);
+        categoriaRepository.borrarTodosLosDe(id);
+        repository.delete(usuario);
+    }
+
     @Transactional(readOnly = true)
     public Usuario buscar(Long id) {
         return repository.findById(id).orElseThrow(() -> new UsuarioNoEncontradoException(id));

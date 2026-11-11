@@ -30,4 +30,9 @@ public interface PagoRecurrenteRepository extends JpaRepository<PagoRecurrente, 
     @Modifying(flushAutomatically = true)
     @Query("UPDATE PagoRecurrente p SET p.usuarioId = :usuarioId WHERE p.usuarioId IS NULL")
     int adoptarLosSinDueno(@Param("usuarioId") Long usuarioId);
+
+    /** Borra todos los de un usuario (cuando borra su cuenta). */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM PagoRecurrente p WHERE p.usuarioId = :usuarioId")
+    int borrarTodosLosDe(@Param("usuarioId") Long usuarioId);
 }

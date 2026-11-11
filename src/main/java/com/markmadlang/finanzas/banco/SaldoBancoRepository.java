@@ -25,4 +25,9 @@ public interface SaldoBancoRepository extends JpaRepository<SaldoBanco, Long> {
     @Modifying(flushAutomatically = true)
     @Query("UPDATE SaldoBanco s SET s.usuarioId = :usuarioId WHERE s.usuarioId IS NULL")
     int adoptarLosSinDueno(@Param("usuarioId") Long usuarioId);
+
+    /** Borra todos los de un usuario (cuando borra su cuenta). */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM SaldoBanco s WHERE s.usuarioId = :usuarioId")
+    int borrarTodosLosDe(@Param("usuarioId") Long usuarioId);
 }

@@ -4,6 +4,8 @@ import com.markmadlang.finanzas.usuario.Usuario;
 import com.markmadlang.finanzas.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +18,7 @@ import java.time.Instant;
  * Entrar en la app:
  *  POST /api/auth/google → cambia el carné de Google por una pulsera de nuestra app
  *  GET  /api/auth/yo     → quién soy (según la pulsera que traigo)
+ *  DELETE /api/auth/yo   → borrar mi cuenta y todos mis datos
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -43,6 +46,13 @@ public class AuthController {
     @GetMapping("/yo")
     public UsuarioResponse yo(@UsuarioId Long usuarioId) {
         return UsuarioResponse.desde(usuarioService.buscar(usuarioId));
+    }
+
+    /** Borra la cuenta y todo lo que ha apuntado. Responde 204: hecho, y no hay nada que devolver. */
+    @DeleteMapping("/yo")
+    public ResponseEntity<Void> borrarMiCuenta(@UsuarioId Long usuarioId) {
+        usuarioService.borrar(usuarioId);
+        return ResponseEntity.noContent().build();
     }
 
     /** Lo que manda la web: el carné que le ha dado Google. */

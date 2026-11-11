@@ -57,4 +57,9 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     @Modifying(flushAutomatically = true)
     @Query("UPDATE Movimiento m SET m.usuarioId = :usuarioId WHERE m.usuarioId IS NULL")
     int adoptarLosSinDueno(@Param("usuarioId") Long usuarioId);
+
+    /** Borra todos los de un usuario (cuando borra su cuenta). */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM Movimiento m WHERE m.usuarioId = :usuarioId")
+    int borrarTodosLosDe(@Param("usuarioId") Long usuarioId);
 }

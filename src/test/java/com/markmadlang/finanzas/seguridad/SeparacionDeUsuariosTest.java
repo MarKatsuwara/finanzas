@@ -189,6 +189,35 @@ class SeparacionDeUsuariosTest {
     }
 
     @Test
+    void borrarMiCuentaBorraTodoLoMioYMiPulseraDejaDeValer() throws Exception {
+        String ana = entrar(GoogleDePrueba.CARNE_DE_ANA);
+        String luis = entrar(GoogleDePrueba.CARNE_DE_LUIS);
+        long gimnasio = crear(ana, "/api/categorias", "{\"nombre\": \"Gimnasio\"}");
+        crear(ana, "/api/movimientos", movimiento("Cuota", "30", gimnasio)); // un movimiento que usa su categoría
+        crear(ana, "/api/pagos-recurrentes", NETFLIX);
+        crear(ana, "/api/saldo-banco", "{\"fecha\": \"2026-11-01\", \"importe\": 400}");
+        long cenaDeLuis = crear(luis, "/api/movimientos", movimiento("Cena", "20", null));
+
+        mockMvc.perform(como(ana, delete("/api/auth/yo"))).andExpect(status().isNoContent());
+
+        // De Ana no queda nada...
+        assertThat(movimientoRepository.findByUsuarioIdOrderByFechaDescIdDesc(idDe(ana))).isEmpty();
+        assertThat(pagoRecurrenteRepository.findByUsuarioIdOrderByDescripcionAscIdAsc(idDe(ana))).isEmpty();
+        assertThat(saldoBancoRepository.findByUsuarioIdOrderByFechaDescIdDesc(idDe(ana))).isEmpty();
+        // ...y su pulsera ya no sirve (la web la mandará a la pantalla de entrar)
+        mockMvc.perform(como(ana, get("/api/movimientos"))).andExpect(status().isUnauthorized());
+
+        // A Luis no le ha pasado nada
+        mockMvc.perform(como(luis, get("/api/movimientos/" + cenaDeLuis))).andExpect(status().isOk());
+    }
+
+    /** El id de usuario que va dentro de una pulsera (su campo "sub"). */
+    private static Long idDe(String pulsera) {
+        String datos = new String(java.util.Base64.getUrlDecoder().decode(pulsera.split("\\.")[1]));
+        return Long.valueOf(JsonPath.<String>read(datos, "$.sub"));
+    }
+
+    @Test
     void elResumenYElSaldoDelBancoSonDeCadaUno() throws Exception {
         String ana = entrar(GoogleDePrueba.CARNE_DE_ANA);
         String luis = entrar(GoogleDePrueba.CARNE_DE_LUIS);

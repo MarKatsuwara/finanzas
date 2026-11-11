@@ -30,4 +30,9 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
     @Modifying(flushAutomatically = true)
     @Query("UPDATE Categoria c SET c.usuarioId = :usuarioId WHERE c.usuarioId IS NULL")
     int adoptarLasSinDueno(@Param("usuarioId") Long usuarioId);
+
+    /** Borra todos los de un usuario (cuando borra su cuenta). */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM Categoria c WHERE c.usuarioId = :usuarioId")
+    int borrarTodosLosDe(@Param("usuarioId") Long usuarioId);
 }

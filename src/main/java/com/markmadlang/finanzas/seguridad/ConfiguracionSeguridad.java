@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.seguridad;
 
+import com.markmadlang.finanzas.usuario.UsuarioRepository;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +10,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
@@ -66,14 +71,30 @@ public class ConfiguracionSeguridad {
         return new NimbusJwtEncoder(new ImmutableSecret<>(clave));
     }
 
-    /** Comprueba pulseras en cada petición: firma correcta, emitida por nosotros y sin caducar. */
+    /**
+     * Comprueba pulseras en cada petición: firma correcta, emitida por nosotros, sin caducar
+     * y de un usuario que todavía existe (si borra su cuenta, su pulsera deja de valer al momento).
+     */
     @Bean
-    public JwtDecoder lectorDePulseras(SecretKey clave, Clock reloj) {
+    public JwtDecoder lectorDePulseras(SecretKey clave, Clock reloj, UsuarioRepository usuarioRepository) {
         NimbusJwtDecoder lector = NimbusJwtDecoder.withSecretKey(clave).macAlgorithm(MacAlgorithm.HS256).build();
 
         JwtTimestampValidator noCaducada = new JwtTimestampValidator();
         noCaducada.setClock(reloj); // usa el mismo reloj que el resto de la app (en los tests, el parado)
-        lector.setJwtValidator(new DelegatingOAuth2TokenValidator<>(noCaducada, new JwtIssuerValidator(ServicioTokens.EMISOR)));
+        OAuth2TokenValidator<Jwt> usuarioExiste = pulsera -> {
+            boolean existe;
+            try {
+                existe = usuarioRepository.existsById(Long.valueOf(pulsera.getSubject()));
+            } catch (NumberFormatException e) {
+                existe = false; // un "sub" que no es un número: pulsera rara
+            }
+            return existe
+                    ? OAuth2TokenValidatorResult.success()
+                    : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "El usuario ya no existe", null));
+        };
+
+        lector.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                noCaducada, new JwtIssuerValidator(ServicioTokens.EMISOR), usuarioExiste));
         return lector;
     }
 }
