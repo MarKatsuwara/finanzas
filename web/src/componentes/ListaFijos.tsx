@@ -93,7 +93,7 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
         {visibles.map((f, i) => {
           const texto = (
             <>
-              {/* Línea 1: "Alquiler · 650,00 €" + su categoría */}
+              {/* Línea 1: "Alquiler · 650,00 €" (sin la categoría: así nunca salta de línea) */}
               <p className="fijo-linea">
                 <span className="fijo-nombre">{f.descripcion}</span>
                 <span className="separador" aria-hidden="true"> · </span>
@@ -101,14 +101,17 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
                   {f.tipo === 'INGRESO' ? '+' : '−'}
                   {euros(f.importe)}
                 </span>
-                {f.categoria && <ChipCategoria id={f.categoria.id} nombre={f.categoria.nombre} />}
               </p>
-              {/* Línea 2: "Trimestral · próximo 15 ene · 20,00 €/mes" */}
-              <p className="etiqueta">
-                {nombreFrecuencia(f.frecuencia)}
-                {' · '}
-                {f.activo && f.proximaFecha ? `próximo ${fechaCorta(f.proximaFecha)}` : 'Desactivado'}
-                {f.frecuencia !== 'MENSUAL' && <span className="num"> · {euros(f.importeMensual)}/mes</span>}
+              {/* Línea 2: categoría + "Trimestral · próximo 15 ene · 20,00 €/mes".
+                  Cada trozo va entero (nowrap): si no cabe, baja el trozo completo, no media palabra */}
+              <p className="fijo-detalle etiqueta">
+                {f.categoria && <ChipCategoria id={f.categoria.id} nombre={f.categoria.nombre} />}
+                <span className="trozo">
+                  {nombreFrecuencia(f.frecuencia)}
+                  {' · '}
+                  {f.activo && f.proximaFecha ? `próximo ${fechaCorta(f.proximaFecha)}` : 'Desactivado'}
+                </span>
+                {f.frecuencia !== 'MENSUAL' && <span className="trozo num solo-escritorio">· {euros(f.importeMensual)}/mes</span>}
               </p>
             </>
           )

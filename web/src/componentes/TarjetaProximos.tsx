@@ -51,7 +51,8 @@ export function TarjetaProximos({ datos, error, cargando, recargar }: Props) {
       )}
 
       {datos && dias.length > 0 && (
-        <>
+        // En el ordenador: la lista a la izquierda y el resumen a la derecha (así no queda un hueco enorme)
+        <div className="proximos">
           <ol className="dias">
             {visibles.map((dia, i) => {
               const { dia: numero, mes } = diaYMes(dia.fecha)
@@ -105,7 +106,7 @@ export function TarjetaProximos({ datos, error, cargando, recargar }: Props) {
               <dd className={datos.saldoFinal < 0 ? 'negativo' : undefined}>{euros(datos.saldoFinal)}</dd>
             </div>
           </dl>
-        </>
+        </div>
       )}
     </section>
   )

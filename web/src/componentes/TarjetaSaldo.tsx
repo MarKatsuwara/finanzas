@@ -55,7 +55,7 @@ export function TarjetaSaldo({ version, prevision, onCambio }: Props) {
 
       {/* 4. Con datos */}
       {datos && (
-        <div className="saldo">
+        <div className="saldo saldo-hero">
           <div className="saldo-principal">
             <Dinero cantidad={datos.saldoHoy} grande animado />
             {prevision && <Aviso prevision={prevision} />}

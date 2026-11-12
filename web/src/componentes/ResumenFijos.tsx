@@ -34,8 +34,7 @@ export function ResumenFijos({ fijos }: { fijos: PagoRecurrente[] }) {
             <span className="unidad">al mes</span>
           </p>
           <p className="etiqueta">
-            Al año pagas <span className="num">{euros(gastosAnio)}</span>. Los pagos anuales, trimestrales y demás
-            están repartidos entre los 12 meses.
+            <span className="num">{euros(gastosAnio)}</span> al año, repartidos entre los 12 meses.
           </p>
         </div>
 

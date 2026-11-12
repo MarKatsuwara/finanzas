@@ -356,6 +356,11 @@ button, input, select { font: inherit; color: inherit; }
 .saldo-principal { gap: 12px; }
 .saldo-principal .acciones { margin-top: 4px; }
 
+/* "En el banco hoy": el número protagonista de toda la app */
+.saldo-hero { align-items: center; }
+.saldo-hero .dinero-grande { font-size: 60px; letter-spacing: -0.035em; line-height: 1; }
+.saldo-hero .saldo-principal { gap: 16px; }
+
 /* El desglose: "apuntaste X + ingresos - gastos = hoy" */
 .desglose {
   background: var(--raised);
@@ -457,6 +462,12 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Puntitos de color que explican la barra */
 .punto { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+/* Saldo + Este mes: las dos igual de altas, y el desglose de cada una pegado abajo,
+   así las dos "sumas" quedan a la misma altura */
+.inicio-arriba { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+.inicio-arriba > .tarjeta { display: flex; flex-direction: column; }
+.inicio-arriba .saldo-hero { grid-template-columns: 1fr; flex: 1; align-content: space-between; }
+
 .punto-gastado { background: var(--accent); }
 .punto-pendiente { background: var(--accent); opacity: 0.35; }
 
@@ -547,7 +558,9 @@ button, input, select { font: inherit; color: inherit; }
 }
 .fijo-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .fijo-linea { display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; }
-.fijo-linea .chip { margin-left: 8px; }
+.fijo-detalle { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; }
+.fijo-detalle .chip { margin-right: 4px; }
+.fijo-detalle .trozo { white-space: nowrap; }
 .fijo-nombre { font-weight: 500; }
 .fijo-linea .separador { color: var(--muted); }
 .fijo-linea .importe { font-weight: 600; white-space: nowrap; }
@@ -1066,6 +1079,16 @@ html:has(.hoja[open]) { overflow: hidden; }
 @keyframes hoja-sube { from { transform: translateY(100%); } }
 @keyframes hoja-baja { to   { transform: translateY(100%); } }
 
+/* En el ordenador, la tarjeta de la derecha (Este mes, Por categoría, Añadir fijo) es más corta
+   que la lista de la izquierda: se queda quieta arriba mientras bajas, así no queda un hueco
+   y la tienes siempre a mano */
+@media (min-width: 901px) {
+  .movimientos-fila > :last-child {
+    position: sticky;
+    top: 24px;
+  }
+}
+
 /* Las dos tarjetas de abajo, una encima de otra (menos de 900 px) */
 @media (max-width: 900px) {
   .inicio-fila, .movimientos-fila { grid-template-columns: 1fr; }
@@ -1092,10 +1115,26 @@ html:has(.hoja[open]) { overflow: hidden; }
   .tarjeta { padding: 20px; }
   .saldo { grid-template-columns: 1fr; }
   .dinero-grande { font-size: 32px; }
+  .saldo-hero .dinero-grande { font-size: 48px; }
 }
 
 /* Si la persona prefiere menos movimiento, quitamos las animaciones */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after, .hoja::backdrop { transition: none !important; animation: none !important; }
   ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* "Este mes" en la fila de arriba: su desglose también pegado abajo */
+.inicio-arriba .mes { flex: 1; }
+.inicio-arriba .mes .desglose { margin-top: auto; }
+
+/* Próximos 30 días a todo el ancho: lista a la izquierda, resumen a la derecha */
+@media (min-width: 901px) {
+  .proximos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+    gap: 0 var(--gap);
+    align-items: start;
+  }
+  .proximos .dias-resumen { margin-top: 0; position: sticky; top: 24px; }
 }

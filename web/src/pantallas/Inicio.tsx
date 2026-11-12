@@ -37,14 +37,15 @@ export function Inicio() {
       </div>
 
       <div className="inicio">
-        <TarjetaSaldo version={version} prevision={prevision.datos} onCambio={() => setVersion(version + 1)} />
+        {/* Arriba, juntas: lo que tienes hoy y cómo acabarás el mes (miden casi lo mismo) */}
+        <div className="inicio-fila inicio-arriba">
+          <TarjetaSaldo version={version} prevision={prevision.datos} onCambio={() => setVersion(version + 1)} />
+          <TarjetaMes version={version} />
+        </div>
 
         <GraficoSaldo {...prevision} />
 
-        <div className="inicio-fila">
-          <TarjetaProximos {...prevision} />
-          <TarjetaMes version={version} />
-        </div>
+        <TarjetaProximos {...prevision} />
       </div>
     </>
   )
