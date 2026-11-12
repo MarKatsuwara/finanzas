@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.movimiento;
 
+import com.markmadlang.finanzas.fecha.FechaRazonable;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +25,7 @@ public record MovimientoRequest(
         BigDecimal importe,
 
         @NotNull(message = "La fecha es obligatoria")
+        @FechaRazonable
         LocalDate fecha,
 
         @NotBlank(message = "La descripción es obligatoria")

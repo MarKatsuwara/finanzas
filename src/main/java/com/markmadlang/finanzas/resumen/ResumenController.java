@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.resumen;
 
+import com.markmadlang.finanzas.fecha.Fechas;
 import com.markmadlang.finanzas.seguridad.UsuarioId;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
 import java.time.YearMonth;
 
 /** La "puerta" de la API para los resúmenes. */
@@ -15,9 +17,11 @@ import java.time.YearMonth;
 public class ResumenController {
 
     private final ResumenService service;
+    private final Clock reloj;
 
-    public ResumenController(ResumenService service) {
+    public ResumenController(ResumenService service, Clock reloj) {
         this.service = service;
+        this.reloj = reloj;
     }
 
     /**
@@ -29,6 +33,8 @@ public class ResumenController {
     public ResumenMensualResponse resumenDelMes(
             @UsuarioId Long usuarioId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth mes) {
-        return service.resumenDelMes(usuarioId, mes != null ? mes : YearMonth.now());
+        Fechas.comprobar("mes", mes);
+        // El mes actual según el reloj de la app (hora de España), no el del servidor
+        return service.resumenDelMes(usuarioId, mes != null ? mes : YearMonth.now(reloj));
     }
 }

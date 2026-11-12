@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.banco;
 
+import com.markmadlang.finanzas.fecha.FechaRazonable;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -12,6 +13,7 @@ public record SaldoBancoRequest(
 
         @NotNull(message = "La fecha es obligatoria")
         @PastOrPresent(message = "La fecha no puede ser futura: apunta lo que tienes hoy o tenías otro día")
+        @FechaRazonable
         LocalDate fecha,
 
         // Sin @Positive: si estás en descubierto, el saldo puede ser negativo

@@ -89,11 +89,12 @@ public class PagoRecurrenteService {
         if (dias < 1 || dias > MAX_DIAS) {
             throw new CampoNoValidoException("dias", "Los días deben estar entre 1 y " + MAX_DIAS);
         }
-        LocalDate hasta = desde.plusDays(dias - 1); // -1 porque el primer día ya cuenta
+        LocalDate inicio = desde != null ? desde : LocalDate.now(reloj); // sin "desde": hoy, en la hora de España
+        LocalDate hasta = inicio.plusDays(dias - 1); // -1 porque el primer día ya cuenta
 
         return repository.findByUsuarioIdAndActivoTrue(usuarioId).stream()
                 // cada pago se convierte en tantos "próximos pagos" como fechas le toquen
-                .flatMap(pago -> pago.fechasEntre(desde, hasta).stream()
+                .flatMap(pago -> pago.fechasEntre(inicio, hasta).stream()
                         .map(fecha -> ProximoPagoResponse.desde(pago, fecha)))
                 .sorted(Comparator.comparing(ProximoPagoResponse::fecha)
                         .thenComparing(ProximoPagoResponse::descripcion))

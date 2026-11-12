@@ -313,13 +313,14 @@ class PagoRecurrenteControllerTest {
 
     @Test
     void proximosSinParametrosUsaHoyYTreintaDias() throws Exception {
-        guardarConInicio("Café semanal", "5.00", Frecuencia.SEMANAL, LocalDate.now(), true);
+        // "Hoy" es el del reloj de la app (el parado: 10/11/2026), no el del ordenador
+        guardarConInicio("Café semanal", "5.00", Frecuencia.SEMANAL, LocalDate.of(2026, 11, 10), true);
 
         // Desde hoy, 30 días: hoy, +7, +14, +21 y +28 días
         mockMvc.perform(get(URL + "/proximos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))
-                .andExpect(jsonPath("$[0].fecha").value(LocalDate.now().toString()));
+                .andExpect(jsonPath("$[0].fecha").value("2026-11-10"));
     }
 
     @Test

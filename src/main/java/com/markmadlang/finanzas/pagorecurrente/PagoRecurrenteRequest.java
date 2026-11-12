@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.fecha.FechaRazonable;
 import com.markmadlang.finanzas.movimiento.TipoMovimiento;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,7 @@ public record PagoRecurrenteRequest(
         Frecuencia frecuencia,
 
         @NotNull(message = "La fecha de inicio es obligatoria")
+        @FechaRazonable
         LocalDate fechaInicio,
 
         // Opcional. Al crear, si no se envía, queda activo.

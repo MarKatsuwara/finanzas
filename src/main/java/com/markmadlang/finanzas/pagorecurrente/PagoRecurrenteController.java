@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.fecha.Fechas;
 import com.markmadlang.finanzas.movimiento.MovimientoResponse;
 import com.markmadlang.finanzas.seguridad.UsuarioId;
 import jakarta.validation.Valid;
@@ -48,7 +49,8 @@ public class PagoRecurrenteController {
             @UsuarioId Long usuarioId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(defaultValue = "30") int dias) {
-        return service.proximos(usuarioId, desde != null ? desde : LocalDate.now(), dias);
+        Fechas.comprobar("desde", desde);
+        return service.proximos(usuarioId, desde, dias); // sin "desde": hoy (lo decide el servicio con su reloj)
     }
 
     /**
