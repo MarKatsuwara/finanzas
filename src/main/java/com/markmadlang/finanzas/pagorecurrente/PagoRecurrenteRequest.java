@@ -35,6 +35,9 @@ public record PagoRecurrenteRequest(
         // Al editar, si no se envía, se queda como estaba.
         Boolean activo,
 
+        // Opcional: "Apuntar solo". Al crear, si no se envía, encendido. Al editar, si no se envía, como estaba.
+        Boolean apuntarSolo,
+
         // Opcional, igual que en los movimientos
         Long categoriaId
 ) {

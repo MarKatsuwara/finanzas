@@ -52,6 +52,14 @@ public class Movimiento {
     @JoinColumn(name = "categoria_id") // puede ser null: la categoría es opcional
     private Categoria categoria;
 
+    // true = lo apuntó la app sola a partir de un gasto fijo (y no la persona)
+    @Column(nullable = false)
+    private boolean automatico;
+
+    // El gasto fijo del que salió (null si lo apuntaste tú, o si ese fijo ya se borró)
+    @Column(name = "pago_recurrente_id")
+    private Long pagoRecurrenteId;
+
     /** JPA necesita un constructor vacío. Es protected para que no lo usemos nosotros. */
     protected Movimiento() {
     }
@@ -60,6 +68,15 @@ public class Movimiento {
                       Categoria categoria) {
         this.usuarioId = usuarioId;
         actualizar(tipo, importe, fecha, descripcion, categoria);
+    }
+
+    /** Un movimiento que apunta la app SOLA porque ha llegado el día de un gasto fijo. */
+    public static Movimiento automatico(Long usuarioId, TipoMovimiento tipo, BigDecimal importe, LocalDate fecha,
+                                        String descripcion, Categoria categoria, Long pagoRecurrenteId) {
+        Movimiento m = new Movimiento(usuarioId, tipo, importe, fecha, descripcion, categoria);
+        m.automatico = true;
+        m.pagoRecurrenteId = pagoRecurrenteId;
+        return m;
     }
 
     /** Cambia todos los datos de golpe (se usa al crear y al editar). */
@@ -97,5 +114,13 @@ public class Movimiento {
 
     public Categoria getCategoria() {
         return categoria;
+    }
+
+    public boolean isAutomatico() {
+        return automatico;
+    }
+
+    public Long getPagoRecurrenteId() {
+        return pagoRecurrenteId;
     }
 }

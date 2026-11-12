@@ -49,6 +49,9 @@ public class PagoRecurrenteService {
         PagoRecurrente nuevo = new PagoRecurrente(usuarioId, datos.descripcion().trim(), datos.tipo(), datos.importe(),
                 datos.frecuencia(), datos.fechaInicio(), activo,
                 categoriaService.buscarParaAsignar(usuarioId, datos.categoriaId()));
+        nuevo.setApuntarSolo(datos.apuntarSolo() == null || datos.apuntarSolo()); // si no lo dicen, encendido
+        // Se apuntará solo a partir de MAÑANA: lo de hoy o antes igual ya lo has apuntado tú
+        nuevo.marcarApuntadoHasta(LocalDate.now(reloj));
         return respuesta(repository.save(nuevo));
     }
 
@@ -56,9 +59,19 @@ public class PagoRecurrenteService {
     public PagoRecurrenteResponse actualizar(Long usuarioId, Long id, PagoRecurrenteRequest datos) {
         PagoRecurrente existente = buscar(usuarioId, id);
         boolean activo = datos.activo() == null ? existente.isActivo() : datos.activo(); // si no lo dicen, igual
+        boolean apuntarSolo = datos.apuntarSolo() == null ? existente.isApuntarSolo() : datos.apuntarSolo();
+
+        // Si se enciende (el fijo o su "Apuntar solo"), empieza a contar desde HOY:
+        // no se rellena lo que tocó mientras estaba apagado
+        boolean seEnciende = (activo && !existente.isActivo()) || (apuntarSolo && !existente.isApuntarSolo());
+        if (seEnciende) {
+            existente.marcarApuntadoHasta(LocalDate.now(reloj));
+        }
+
         existente.actualizar(datos.descripcion().trim(), datos.tipo(), datos.importe(),
                 datos.frecuencia(), datos.fechaInicio(), activo,
                 categoriaService.buscarParaAsignar(usuarioId, datos.categoriaId()));
+        existente.setApuntarSolo(apuntarSolo);
         return respuesta(existente);
     }
 

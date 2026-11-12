@@ -58,6 +58,14 @@ public class PagoRecurrente {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
+    // El interruptor "Apuntar solo": si está encendido, la app lo apunta como movimiento cuando llega su día
+    @Column(name = "apuntar_solo", nullable = false)
+    private boolean apuntarSolo = true;
+
+    // La "marca": hasta qué día (incluido) está ya apuntado. Lo de antes de esta fecha nunca se apunta solo.
+    @Column(name = "apuntado_hasta", nullable = false)
+    private LocalDate apuntadoHasta;
+
     /** JPA necesita un constructor vacío. */
     protected PagoRecurrente() {
     }
@@ -66,6 +74,9 @@ public class PagoRecurrente {
                           Frecuencia frecuencia, LocalDate fechaInicio, boolean activo, Categoria categoria) {
         this.usuarioId = usuarioId;
         actualizar(descripcion, tipo, importe, frecuencia, fechaInicio, activo, categoria);
+        // De serie, "nada apuntado todavía": la marca, el día antes del primer pago.
+        // (Al crearlo desde la API, el servicio la pone en HOY para no rellenar el pasado.)
+        this.apuntadoHasta = fechaInicio.minusDays(1);
     }
 
     /** Cambia todos los datos de golpe (se usa al crear y al editar). */
@@ -78,6 +89,31 @@ public class PagoRecurrente {
         this.fechaInicio = fechaInicio;
         this.activo = activo;
         this.categoria = categoria;
+    }
+
+    /** Enciende o apaga "Apuntar solo". */
+    public void setApuntarSolo(boolean apuntarSolo) {
+        this.apuntarSolo = apuntarSolo;
+    }
+
+    /**
+     * Mueve la marca a "fecha", pero nunca hacia atrás (así nada se apunta dos veces).
+     */
+    public void marcarApuntadoHasta(LocalDate fecha) {
+        if (fecha.isAfter(apuntadoHasta)) {
+            this.apuntadoHasta = fecha;
+        }
+    }
+
+    /**
+     * Las fechas que tocaban desde el día siguiente a la marca hasta "hoy" (incluido) y aún no se han apuntado.
+     * Si está apagado (o con "Apuntar solo" apagado), ninguna.
+     */
+    public List<LocalDate> fechasPendientesHasta(LocalDate hoy) {
+        if (!activo || !apuntarSolo || !hoy.isAfter(apuntadoHasta)) {
+            return List.of();
+        }
+        return fechasEntre(apuntadoHasta.plusDays(1), hoy);
     }
 
     /**
@@ -155,5 +191,13 @@ public class PagoRecurrente {
 
     public Categoria getCategoria() {
         return categoria;
+    }
+
+    public boolean isApuntarSolo() {
+        return apuntarSolo;
+    }
+
+    public LocalDate getApuntadoHasta() {
+        return apuntadoHasta;
     }
 }

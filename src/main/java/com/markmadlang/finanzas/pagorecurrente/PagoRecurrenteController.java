@@ -1,5 +1,6 @@
 package com.markmadlang.finanzas.pagorecurrente;
 
+import com.markmadlang.finanzas.movimiento.MovimientoResponse;
 import com.markmadlang.finanzas.seguridad.UsuarioId;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,9 +25,11 @@ import java.util.List;
 public class PagoRecurrenteController {
 
     private final PagoRecurrenteService service;
+    private final ApuntadorDeFijos apuntador;
 
-    public PagoRecurrenteController(PagoRecurrenteService service) {
+    public PagoRecurrenteController(PagoRecurrenteService service, ApuntadorDeFijos apuntador) {
         this.service = service;
+        this.apuntador = apuntador;
     }
 
     @GetMapping
@@ -46,6 +49,15 @@ public class PagoRecurrenteController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(defaultValue = "30") int dias) {
         return service.proximos(usuarioId, desde != null ? desde : LocalDate.now(), dias);
+    }
+
+    /**
+     * Apunta como movimientos los fijos que ya han llegado a su día y aún no estaban apuntados.
+     * La web lo llama al abrirse. Devuelve lo que ha apuntado (una lista vacía si no había nada).
+     */
+    @PostMapping("/apuntar-pendientes")
+    public List<MovimientoResponse> apuntarPendientes(@UsuarioId Long usuarioId) {
+        return apuntador.apuntarPendientes(usuarioId);
     }
 
     @GetMapping("/{id}")

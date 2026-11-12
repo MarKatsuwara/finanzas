@@ -15,11 +15,12 @@ public record MovimientoResponse(
         BigDecimal importe,
         LocalDate fecha,
         String descripcion,
-        CategoriaResponse categoria // null si no tiene
+        CategoriaResponse categoria, // null si no tiene
+        boolean automatico          // true = lo apuntó la app sola (salió de un gasto fijo)
 ) {
 
-    static MovimientoResponse desde(Movimiento m) {
+    public static MovimientoResponse desde(Movimiento m) {
         return new MovimientoResponse(m.getId(), m.getTipo(), m.getImporte(), m.getFecha(), m.getDescripcion(),
-                CategoriaResponse.desde(m.getCategoria()));
+                CategoriaResponse.desde(m.getCategoria()), m.isAutomatico());
     }
 }

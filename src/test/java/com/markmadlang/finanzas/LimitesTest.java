@@ -54,6 +54,9 @@ class LimitesTest {
     private UsuarioService usuarioService;
 
     @Autowired
+    private SesionDePrueba.UsuarioDePrueba usuario;
+
+    @Autowired
     private PagoRecurrenteRepository pagoRecurrenteRepository;
 
     private MvcResult crear(String url, String json) throws Exception {
@@ -75,6 +78,18 @@ class LimitesTest {
         mockMvc.perform(delete(ubicacion)).andExpect(status().isNoContent());
         mockMvc.perform(post("/api/movimientos").contentType(MediaType.APPLICATION_JSON).content(MOVIMIENTO))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void siLosFijosPendientesNoCabenNoSeApuntaNinguno() throws Exception {
+        // Un fijo semanal desde el 01/10: tiene muchas semanas pendientes y el máximo aquí es 2 movimientos
+        pagoRecurrenteRepository.save(new PagoRecurrente(usuario.id(), "Clase de inglés", TipoMovimiento.GASTO,
+                new BigDecimal("20"), Frecuencia.SEMANAL, LocalDate.of(2026, 10, 1), true, null));
+
+        mockMvc.perform(post("/api/pagos-recurrentes/apuntar-pendientes"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(
+                        "Has llegado al máximo de 2 movimientos. Borra alguno para poder guardar más."));
     }
 
     @Test

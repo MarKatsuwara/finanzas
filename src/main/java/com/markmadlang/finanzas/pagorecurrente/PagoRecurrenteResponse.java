@@ -17,12 +17,13 @@ public record PagoRecurrenteResponse(
         boolean activo,
         CategoriaResponse categoria,
         BigDecimal importeMensual,  // lo que cuesta repartido por meses (420 €/año → 35,00)
-        LocalDate proximaFecha      // la próxima vez que toca (null si está desactivado)
+        LocalDate proximaFecha,     // la próxima vez que toca (null si está desactivado)
+        boolean apuntarSolo         // true = cuando llega su día, la app lo apunta sola como movimiento
 ) {
 
     static PagoRecurrenteResponse desde(PagoRecurrente p, LocalDate hoy) {
         return new PagoRecurrenteResponse(p.getId(), p.getDescripcion(), p.getTipo(), p.getImporte(),
                 p.getFrecuencia(), p.getFechaInicio(), p.isActivo(), CategoriaResponse.desde(p.getCategoria()),
-                p.importeMensual(), p.isActivo() ? p.proximaFechaDesde(hoy) : null);
+                p.importeMensual(), p.isActivo() ? p.proximaFechaDesde(hoy) : null, p.isApuntarSolo());
     }
 }
