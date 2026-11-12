@@ -5,6 +5,7 @@ import { avisarCambio, marcarNuevo } from '../cambios'
 import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { aproximarAlMes, FRECUENCIAS } from '../frecuencias'
 import { useDatos } from '../useDatos'
+import { Interruptor } from './Interruptor'
 
 type Tipo = 'GASTO' | 'INGRESO'
 
@@ -29,6 +30,7 @@ export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = fa
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(editando?.frecuencia ?? 'MENSUAL')
   const [fechaInicio, setFechaInicio] = useState(editando?.fechaInicio ?? hoyIso())
   const [categoriaId, setCategoriaId] = useState(editando?.categoria ? String(editando.categoria.id) : '')
+  const [apuntarSolo, setApuntarSolo] = useState(editando?.apuntarSolo ?? true)
 
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState<string | null>(null)
@@ -62,6 +64,7 @@ export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = fa
       frecuencia,
       fechaInicio,
       categoriaId: categoriaId === '' ? null : Number(categoriaId),
+      apuntarSolo,
     }
     try {
       if (editando) {
@@ -172,6 +175,17 @@ export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = fa
               ))}
             </select>
           </div>
+        </div>
+
+        {/* "Apuntar solo": cuando llega su día, la app lo apunta como movimiento */}
+        <div className="opcion-interruptor">
+          <div className="opcion-texto">
+            <span className="opcion-titulo">Apuntar solo</span>
+            <span className="etiqueta">
+              Cuando llegue el día, se apunta solo en Movimientos. Apágalo si el importe cambia cada vez (luz, agua…).
+            </span>
+          </div>
+          <Interruptor encendido={apuntarSolo} onCambiar={() => setApuntarSolo(!apuntarSolo)} etiqueta="Apuntar solo" />
         </div>
 
         <button className="boton boton-principal" type="submit" disabled={guardando}>

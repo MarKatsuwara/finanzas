@@ -60,8 +60,11 @@ const esperar = (ms: number) => new Promise((resolver) => setTimeout(resolver, m
  * (Entrar con Google sí: entrar dos veces no hace daño.)
  */
 function sePuedeRepetir(ruta: string, metodo: string): boolean {
-  return metodo !== 'POST' || ruta === RUTA_ENTRAR
+  return metodo !== 'POST' || ruta === RUTA_ENTRAR || ruta === RUTA_APUNTAR_FIJOS
 }
+
+/** Apuntar los fijos pendientes también se puede repetir: la API nunca apunta nada dos veces. */
+export const RUTA_APUNTAR_FIJOS = '/api/pagos-recurrentes/apuntar-pendientes'
 
 /** Una sola llamada a la API. Devuelve null si el servidor no está (para reintentar). */
 async function llamar(ruta: string, opciones: RequestInit): Promise<Response | null> {
@@ -236,6 +239,7 @@ export interface Movimiento {
   fecha: string
   descripcion: string
   categoria: Categoria | null
+  automatico: boolean // true = lo apuntó la app sola (salió de un gasto fijo)
 }
 
 /** Cuánto se ha ingresado o gastado en una categoría (categoriaId es null en "Sin categoría"). */
@@ -269,4 +273,5 @@ export interface PagoRecurrente {
   categoria: Categoria | null
   importeMensual: number       // lo que cuesta repartido por meses
   proximaFecha: string | null  // null si está desactivado
+  apuntarSolo: boolean         // true = cuando llega su día, la app lo apunta sola como movimiento
 }

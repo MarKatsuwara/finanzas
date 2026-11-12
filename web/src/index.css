@@ -1138,3 +1138,32 @@ html:has(.hoja[open]) { overflow: hidden; }
   }
   .proximos .dias-resumen { margin-top: 0; position: sticky; top: 24px; }
 }
+
+/* =========================================================
+   FIJOS QUE SE APUNTAN SOLOS
+   ========================================================= */
+/* La etiqueta "automático" en la lista de movimientos: discreta, en gris, con el icono de los fijos */
+.marca-automatico {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.marca-automatico svg { width: 12px; height: 12px; flex: none; }
+
+/* El interruptor "Apuntar solo" del formulario: el texto a la izquierda, el interruptor a la derecha */
+.opcion-interruptor {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-inner);
+  background: var(--raised);
+}
+.opcion-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.opcion-titulo { font-weight: 500; font-size: var(--fs-small); }
+.opcion-interruptor .etiqueta { font-size: 13px; line-height: 1.4; }
+.opcion-interruptor .interruptor { flex: none; margin-top: 2px; }

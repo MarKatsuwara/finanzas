@@ -111,6 +111,7 @@ export function ListaFijos({ fijos, onEditar, editandoId }: Props) {
                   {' · '}
                   {f.activo && f.proximaFecha ? `próximo ${fechaCorta(f.proximaFecha)}` : 'Desactivado'}
                 </span>
+                {f.activo && !f.apuntarSolo && <span className="trozo">· lo apuntas tú</span>}
                 {f.frecuencia !== 'MENSUAL' && <span className="trozo num solo-escritorio">· {euros(f.importeMensual)}/mes</span>}
               </p>
             </>

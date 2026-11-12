@@ -6,6 +6,7 @@ import { BarraInferior, type Destino } from './componentes/BarraInferior'
 import { CuentaUsuario } from './componentes/CuentaUsuario'
 import { HojaActual } from './componentes/HojaActual'
 import { SelectorTema } from './componentes/SelectorTema'
+import { vigilarFijosPendientes } from './fijosSolos'
 import { cerrarHoja } from './hojas'
 import { prefiereMenosMovimiento } from './movil'
 import { Entrar } from './pantallas/Entrar'
@@ -81,6 +82,10 @@ export default function App() {
 
   // Cuando entras o sales (o caduca la pulsera), volvemos a mirar la sesión
   useEffect(() => alCambiarLaSesion(() => setSesion(sesionActual())), [])
+
+  // Con sesión: la API apunta sola los gastos fijos que ya han llegado a su día (fijosSolos.ts)
+  const token = sesion?.token
+  useEffect(() => (token ? vigilarFijosPendientes() : undefined), [token])
 
   // Cuando cambia la dirección (al pulsar un enlace del menú), cambiamos de pantalla.
   // Con "View Transitions" el navegador hace un fundido suave entre la pantalla vieja y la nueva
