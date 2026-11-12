@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { enviar, ErrorApi } from '../api'
-import { hoyIso, leerImporte } from '../formato'
+import { FECHA_MINIMA, hoyIso, leerImporte } from '../formato'
 
 interface Props {
   onGuardado: () => void   // qué hacer cuando se guarda bien (normalmente: recargar el saldo)
@@ -51,7 +51,7 @@ export function FormularioSaldo({ onGuardado, onCancelar }: Props) {
       </div>
       <div className="campo">
         <label htmlFor="saldo-fecha">Fecha</label>
-        <input id="saldo-fecha" type="date" value={fecha} max={hoyIso()} onChange={(e) => setFecha(e.target.value)} />
+        <input id="saldo-fecha" type="date" value={fecha} min={FECHA_MINIMA} max={hoyIso()} onChange={(e) => setFecha(e.target.value)} />
       </div>
       <button className="boton boton-principal" type="submit" disabled={guardando}>
         {guardando ? 'Guardando…' : 'Guardar saldo'}

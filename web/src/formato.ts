@@ -5,9 +5,12 @@
 // useGrouping 'always': pone el punto de los miles también en números de 4 cifras (1.501 y no 1501)
 const EUROS = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
-/** 1501.26 → "1.501,26 €" */
+/**
+ * 1501.26 → "1.501,26 €"; −50.5 → "−50,50 €".
+ * El signo menos es el de verdad (−) y no el guion (-): así sale igual que en los gastos ("−12,99 €").
+ */
 export function euros(cantidad: number): string {
-  return EUROS.format(cantidad)
+  return EUROS.format(cantidad).replace('-', '−')
 }
 
 /**
@@ -18,7 +21,9 @@ export function partesDeEuros(cantidad: number): { entero: string; resto: string
   let entero = ''
   let resto = ''
   for (const parte of EUROS.formatToParts(cantidad)) {
-    if (parte.type === 'minusSign' || parte.type === 'integer' || parte.type === 'group') {
+    if (parte.type === 'minusSign') {
+      entero += '−' // el signo menos de verdad, como en euros()
+    } else if (parte.type === 'integer' || parte.type === 'group') {
       entero += parte.value
     } else {
       resto += parte.value
@@ -43,6 +48,10 @@ export function fechaCorta(iso: string): string {
   return aFecha(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')
 }
 
+/** Las fechas que admite la API (las mismas que Fechas.java): del 01/01/2000 al 31/12/2100 */
+export const FECHA_MINIMA = '2000-01-01'
+export const FECHA_MAXIMA = '2100-12-31'
+
 /** La fecha de hoy en formato "2026-11-10" (el que entiende la API) */
 export function hoyIso(): string {
   const hoy = new Date()
@@ -51,9 +60,23 @@ export function hoyIso(): string {
   return `${hoy.getFullYear()}-${mes}-${dia}`
 }
 
-/** Convierte lo que escribe la persona ("12,50" o "12.50") en número. NaN si no es un número. */
+/**
+ * Convierte lo que escribe la persona en número. NaN si no es un número.
+ *   "12,50" → 12.5     "12.50" → 12.5     "1000" → 1000
+ *   "1.000" → 1000     "1.234,56" → 1234.56   (el punto de los miles, como se escribe en España)
+ * Antes "1.000" se leía como 1 € y "1.234,56" no se podía guardar.
+ */
 export function leerImporte(texto: string): number {
-  return Number(texto.trim().replace(',', '.'))
+  const limpio = texto.replace(/[\s€]/g, '') // fuera espacios y el símbolo del euro
+  if (limpio.includes(',')) {
+    // Con coma: la coma son los decimales y los puntos, los miles → "1.234,56" = 1234.56
+    return Number(limpio.replace(/\./g, '').replace(',', '.'))
+  }
+  if (/^\d{1,3}(\.\d{3})+$/.test(limpio)) {
+    // Solo puntos y siempre con 3 cifras detrás: son los miles → "1.000" = 1000, "12.500" = 12500
+    return Number(limpio.replace(/\./g, ''))
+  }
+  return Number(limpio) // "12.5", "12.50" o "1000"
 }
 
 /** Lo contrario: un importe escrito como lo teclearías tú (12.5 → "12,50"), para rellenar el formulario al editar. */

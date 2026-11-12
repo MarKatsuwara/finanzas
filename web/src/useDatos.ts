@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorApi, pedir } from './api'
 import { useCambios } from './cambios'
 
@@ -19,17 +19,23 @@ export function useDatos<T>(ruta: string, version = 0) {
   const [datos, setDatos] = useState<T | null>(null)
   const [error, setError] = useState<ErrorApi | null>(null)
   const [cargando, setCargando] = useState(true)
+  // Número de la última petición. Si cambias de mes muy rápido, la respuesta de un mes viejo puede
+  // llegar DESPUÉS que la del nuevo: solo hacemos caso a la última, así nunca se pinta el mes equivocado.
+  const ultima = useRef(0)
 
   const recargar = useCallback(async () => {
+    const esta = ++ultima.current
     setCargando(true)
     setError(null)
     try {
-      setDatos(await pedir<T>(ruta))
+      const respuesta = await pedir<T>(ruta)
+      if (esta === ultima.current) setDatos(respuesta)
     } catch (e) {
+      if (esta !== ultima.current) return
       setDatos(null)
       setError(e instanceof ErrorApi ? e : new ErrorApi(0, 'Ha ocurrido un error inesperado'))
     } finally {
-      setCargando(false)
+      if (esta === ultima.current) setCargando(false)
     }
   }, [ruta])
 
@@ -54,18 +60,22 @@ export function useVariosDatos<T>(rutas: string[], version = 0) {
 
   // Las rutas unidas en un solo texto: así React sabe si han cambiado de verdad
   const clave = rutas.join('|')
+  const ultima = useRef(0) // igual que en useDatos: solo cuenta la última petición
 
   const recargar = useCallback(async () => {
+    const esta = ++ultima.current
     setCargando(true)
     setError(null)
     try {
       // Promise.all: lanza todas las peticiones a la vez y espera a que lleguen todas
-      setDatos(await Promise.all(clave.split('|').map((ruta) => pedir<T>(ruta))))
+      const respuestas = await Promise.all(clave.split('|').map((ruta) => pedir<T>(ruta)))
+      if (esta === ultima.current) setDatos(respuestas)
     } catch (e) {
+      if (esta !== ultima.current) return
       setDatos(null)
       setError(e instanceof ErrorApi ? e : new ErrorApi(0, 'Ha ocurrido un error inesperado'))
     } finally {
-      setCargando(false)
+      if (esta === ultima.current) setCargando(false)
     }
   }, [clave])
 

@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Movimiento } from '../api'
 import { avisar } from '../avisos'
 import { avisarCambio, marcarNuevo } from '../cambios'
-import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
+import { euros, FECHA_MAXIMA, FECHA_MINIMA, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { useDatos } from '../useDatos'
 
 type Tipo = 'GASTO' | 'INGRESO'
@@ -156,7 +156,7 @@ export function FormularioMovimiento({ editando = null, onTerminarEdicion, enHoj
 
         <div className="campo">
           <label htmlFor="mov-fecha">Fecha</label>
-          <input id="mov-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          <input id="mov-fecha" type="date" min={FECHA_MINIMA} max={FECHA_MAXIMA} value={fecha} onChange={(e) => setFecha(e.target.value)} />
         </div>
       </div>
 

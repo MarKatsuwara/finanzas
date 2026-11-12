@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { enviar, ErrorApi, type Categoria, type Frecuencia, type PagoRecurrente } from '../api'
 import { avisar } from '../avisos'
 import { avisarCambio, marcarNuevo } from '../cambios'
-import { euros, hoyIso, importeParaEscribir, leerImporte } from '../formato'
+import { euros, FECHA_MAXIMA, FECHA_MINIMA, hoyIso, importeParaEscribir, leerImporte } from '../formato'
 import { aproximarAlMes, FRECUENCIAS } from '../frecuencias'
 import { useDatos } from '../useDatos'
 import { Interruptor } from './Interruptor'
@@ -164,7 +164,7 @@ export function FormularioFijo({ editando = null, onTerminarEdicion, enHoja = fa
         <div className="campos-juntos">
           <div className="campo">
             <label htmlFor="fijo-fecha">Primer pago</label>
-            <input id="fijo-fecha" type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+            <input id="fijo-fecha" type="date" min={FECHA_MINIMA} max={FECHA_MAXIMA} value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
           </div>
           <div className="campo">
             <label htmlFor="fijo-categoria">Categoría</label>
